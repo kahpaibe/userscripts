@@ -37,8 +37,11 @@ Allows copying the tracklist (names only or fully formatted):
 - Of a given disc of selected language
 - All the discs of selected language
 
-### About
+## VGMdb Metadata Format
 
-This script was mostly written using ChatGPT with some manual tweaking. I made it because I did not find the other such scripts on GreasyFork to be 1. working properly 2. working with several languages etc...
+A script that inserts a button on VGMdb album pages (https://vgmdb.net/album/*) to copy a formatted script with some metadata related to the album.
 
-Find it on Greasy Fork [here](https://greasyfork.org/en/scripts/532970-vgmdb-tracklist-copy)
+### Usage
+
+CLick the buttons inserted between to the "Discuss" and "Edit" buttons.
+
