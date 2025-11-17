@@ -1,0 +1,21 @@
+// ==UserScript==
+// @name         VGMdb Date Format YYYY-MM-DD (edited)
+// @namespace    nya.nya.nya
+// @version      0.1
+// @description  Convert album page dates to YYYY-MM-DD (YYYY.MM.DD) format for easier metadata entry
+// @author       nya, modified by kahpaibe
+// @match        https://vgmdb.net/album/*
+// @grant        none
+// @license MIT
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    document.querySelectorAll('a[title^="View albums released on"]').forEach(link => {
+        let dateObj = new Date(link.innerText);
+        if (!isNaN(dateObj)) {
+            link.innerText = `${dateObj.getFullYear()}-${('0' + (dateObj.getMonth() + 1)).slice(-2)}-${('0' + dateObj.getDate()).slice(-2)}`;
+        }
+    });
+})();
