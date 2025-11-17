@@ -41,4 +41,14 @@ Allows copying the tracklist (names only or fully formatted):
 
 This script was mostly written using ChatGPT with some manual tweaking. I made it because I did not find the other such scripts on GreasyFork to be 1. working properly 2. working with several languages etc...
 
-Find it on Greasy Fork [here](https://greasyfork.org/en/scripts/532970-vgmdb-tracklist-copy)
+Find it on Greasy Fork [here](https://greasyfork.org/en/scripts/532970-vgmdb-tracklist-copy).
+
+
+## VGMdb Date Format
+Fork of [VGMdb Date Format YYYY-MM-DD](https://greasyfork.org/en/scripts/527467-vgmdb-date-format-yyyy-mm-dd) by [tglsf](https://greasyfork.org/en/users/930481-tglsf)
+Convert album page dates to YYYY-MM-DD (YYYY.MM.DD) format for easier metadata entry.
+
+## VGMdb Metadata Format
+Copy album metadata as a formatted string to clipboard.
+
+Find it on Greasy Fork [here](https://greasyfork.org/en/scripts/556103-vgmdb-metadata-format).
