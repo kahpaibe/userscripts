@@ -2,53 +2,101 @@
 
 Some useful userscripts to use with your favorite manager such as Violentmonkey or Tampermonkey.
 
-# Scripts
+## Wayback URLs quick open
 
-## VGMdb metadata copy
+Insert buttons on Wayback machine URLs page to quickly open respective urls.
 
-A script that inserts buttons on VGMdb album pages ([https://vgmdb.net/album/*](https://vgmdb.net/album/*)) to easily copy to clipboard the related metadata.
+### Features
 
-### Usage
-Click the buttons inserted next to the various fields.
+When this script is enabled, clickable buttons will be inserted next to all urls opening the respective page:
+| **Button** | **Opened URL type** |
+| ---------- | -------------------------------------- |
+| o | Original url (outside archive.org) |
+| n | Newest saved page |
+| f | First (oldest) saved page |
 
-Allows copying:
-- Title and alternative titles
-- Release date, event and the mix of the two
-- Publisher
-- A tagged string encoding relevant information of the following format: '${PREFIX}?[${date}][${event}]? ${publisher} - ${catalognumber}${SUFFIX}?' (ex: [1996.02.16] 新世紀エヴァンゲリオン II {KICA-290})
+A **Batch open** button will also be inserted at the top. This button will prompt for url type and batch size to open, allowing to quickly open found urls.
 
-A *PREFIX* and a *SUFFIX* variable are defined at the top of the script, they can be used to append a string on the tagged string defined above.
+## VGMDB menu tweaks
 
-### About
+Insert user-defined buttons on VGMdb menus: subnav menu (main) and navmember menu (user drop-down, only shown when user is logged in).
 
-A script mostly made with ChatGPT with some manual tweaking. 
+### Features
 
-Find it on Greasy Fork [here](https://greasyfork.org/en/scripts/532969-vgmdb-metadata-copy)
+When this script is enabled, buttons will be inserted in the VGMdb menu and submenus. The buttons and their respective urls are defined in the script, allowing to quickly open related pages.
 
-## VGMdb Tracklist copy
+```
+  // User-defined buttons to insert in "subnav" menu.
+  const subnavButtons = [
+    // {title: "...", href: "...", tooltip:"..."}
+    {
+      title: "game-adgacent",
+      href: "/forums/showthread.php?t=29157",
+      tooltip: "Game-adgacent description post",
+    },
+  ];
 
-A script that inserts buttons on VGMdb album pages (https://vgmdb.net/album/*) to easily copy to clipboard the tracklists of given album.
+  // User-defined buttons to insert in "navmember" menu.
+  const navmemberCustomButtons = [
+    // {title: "...", href: "...", tooltip:"..."}
+    {
+      title: "My modq",
+      href: "/db/modq.php?do=mod_albums&type=mine",
+      tooltip: "See user's entries in mod queue",
+    },
+  ];
+```
 
-### Usage
+User info can also be used in these definitions using the built-in `getUserInfo` function which provides logged-in user name and id.
 
-CLick the buttons inserted next to either the tracklist language or the wanted disc.
+## VGMDB album page tweaks
 
-Allows copying the tracklist (names only or fully formatted):
-- Of a given disc of selected language
-- All the discs of selected language
+Add quality of life features to VGMdb album pages.
 
-### About
+### Features
 
-This script was mostly written using ChatGPT with some manual tweaking. I made it because I did not find the other such scripts on GreasyFork to be 1. working properly 2. working with several languages etc...
+When this script is enabled, the following features will be added to album pages:
 
-Find it on Greasy Fork [here](https://greasyfork.org/en/scripts/532970-vgmdb-tracklist-copy).
+**Custom date format**, the displayed date format can be customized through the `formatDateOverride` function. By default, the date format will be overridden to `YYYY.MM.DD`.
 
+**Metadata copy**, buttons will be inserted next to several fields that will allow copying their content to clipboard when clicked. This applies to titles, album info and credits.
 
-## VGMdb Date Format
-Fork of [VGMdb Date Format YYYY-MM-DD](https://greasyfork.org/en/scripts/527467-vgmdb-date-format-yyyy-mm-dd) by [tglsf](https://greasyfork.org/en/users/930481-tglsf)
-Convert album page dates to YYYY-MM-DD (YYYY.MM.DD) format for easier metadata entry.
+**Tracklist copy**, buttons will be inserted to copy tracklists easily. Title only or with track number and length buttons are provided, as well as per-disc and per-language buttons.
 
-## VGMdb Metadata Format
-Copy album metadata as a formatted string to clipboard.
+### Acknowledgements
 
-Find it on Greasy Fork [here](https://greasyfork.org/en/scripts/556103-vgmdb-metadata-format).
+The date format part of this script was inspired by [VGMdb Date Format YYYY-MM-DD](https://greasyfork.org/en/scripts/527467-vgmdb-date-format-yyyy-mm-dd).
+
+## VGMdb album formatted info copy
+
+Copy album metadata as a formatted string to clipboard, made very easy to customize.
+
+### Features
+
+When this script is enabled, buttons will be inserted next to the _Discuss | Edit_ buttons on VGMdb album pages. When clicked, the button will copy to clipboard the user-defined formatted string containing album metadata.
+
+Formatted string buttons are defined in the `albummetadataButtonSettings` list, please refer to the example format button for further details on provided metadata, here is a quick summary of available metadata:
+| **Variable** | **Type** | **Description** |
+| ------------ | --------------------------------------- |
+| url | String | URL of the current album page |
+| coverurl | String | URL of the album cover image |
+| titles | Array | List of titles for the album |
+| notes | String | Album notes |
+| links | Array | List of 3rd party links (Websites) |
+| albuminfo | Object (refer to script) | From `album_infobit_large` table, containing fields such as Catalog Number, Publisher and Release Date |
+| credits | Object (refer to script) | From `collapse_credits` div containing Credits information |
+| tracklists | Object (refer to script) | Contains all tracklists |
+
+## VGMdb add album tweaks
+
+Insert quality of life features to VGMdb add album pages.
+
+### Features
+
+When this script is enabled, the following features will be added to the add album page:
+
+**Quick date**, a new button will allow parsing text for dates to quickly set the date. Default supported expressions are of the form `DD*MM*YYYY` `YYYY*MM*DD`, more can be added by the user in the `albumAddQuickDateDateRegexes` array.
+
+**Selected items display**, the selected items of all `select[multiple]` elements will be displayed below them. The font color of the displayed items can be customized in the `albumAddSelectedItemsFontColor` variable.
+
+**Product query and insertion**, a new button will allow querying the VGMdb database for products and inserting them in the form. The language priority telling which name to keep for products is defined in the customizable `albumAddQueryProductsLanguagePriority` array.
