@@ -17,6 +17,8 @@ When this script is enabled, clickable buttons will be inserted next to all urls
 
 A **Batch open** button will also be inserted at the top. This button will prompt for url type and batch size to open, allowing to quickly open found urls.
 
+<img width="2621" height="1168" alt="Wayback URLs quick open" src="https://github.com/user-attachments/assets/1c43aa91-9dfc-4b86-aa33-38cd7d04eb5a" />
+
 ## VGMDB menu tweaks
 
 Insert user-defined buttons on VGMdb menus: subnav menu (main) and navmember menu (user drop-down, only shown when user is logged in).
@@ -49,6 +51,9 @@ When this script is enabled, buttons will be inserted in the VGMdb menu and subm
 
 User info can also be used in these definitions using the built-in `getUserInfo` function which provides logged-in user name and id.
 
+<img width="1201" height="567" alt="VGMDB menu tweaks" src="https://github.com/user-attachments/assets/6e44b200-9575-4c22-8614-65d9db82443a" />
+
+
 ## VGMDB album page tweaks
 
 Add quality of life features to VGMdb album pages.
@@ -62,6 +67,8 @@ When this script is enabled, the following features will be added to album pages
 **Metadata copy**, buttons will be inserted next to several fields that will allow copying their content to clipboard when clicked. This applies to titles, album info and credits.
 
 **Tracklist copy**, buttons will be inserted to copy tracklists easily. Title only or with track number and length buttons are provided, as well as per-disc and per-language buttons.
+
+<img width="1302" height="1451" alt="VGMDB album page tweaks" src="https://github.com/user-attachments/assets/624b71bd-0e7d-44ee-99c5-05e7599a67c3" />
 
 ### Acknowledgements
 
@@ -77,7 +84,7 @@ When this script is enabled, buttons will be inserted next to the _Discuss | Edi
 
 Formatted string buttons are defined in the `albummetadataButtonSettings` list, please refer to the example format button for further details on provided metadata, here is a quick summary of available metadata:
 | **Variable** | **Type** | **Description** |
-| ------------ | --------------------------------------- |
+| ------------ | -------- | --------------- |
 | url | String | URL of the current album page |
 | coverurl | String | URL of the album cover image |
 | titles | Array | List of titles for the album |
@@ -86,6 +93,8 @@ Formatted string buttons are defined in the `albummetadataButtonSettings` list, 
 | albuminfo | Object (refer to script) | From `album_infobit_large` table, containing fields such as Catalog Number, Publisher and Release Date |
 | credits | Object (refer to script) | From `collapse_credits` div containing Credits information |
 | tracklists | Object (refer to script) | Contains all tracklists |
+
+<img width="806" height="182" alt="VGMdb album formatted info copy" src="https://github.com/user-attachments/assets/489a6d00-e1cc-4fcd-ad23-f0ddf186183a" />
 
 ## VGMdb add album tweaks
 
@@ -100,3 +109,5 @@ When this script is enabled, the following features will be added to the add alb
 **Selected items display**, the selected items of all `select[multiple]` elements will be displayed below them. The font color of the displayed items can be customized in the `albumAddSelectedItemsFontColor` variable.
 
 **Product query and insertion**, a new button will allow querying the VGMdb database for products and inserting them in the form. The language priority telling which name to keep for products is defined in the customizable `albumAddQueryProductsLanguagePriority` array.
+
+<img width="2500" height="1275" alt="VGMdb add album tweaks" src="https://github.com/user-attachments/assets/464a3b6e-5161-4857-a7f8-9275559786b0" />
