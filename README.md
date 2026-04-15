@@ -71,6 +71,11 @@ When this script is enabled, the following features will be added to album pages
 
 <img width="1302" height="1451" alt="VGMDB album page tweaks" src="https://github.com/user-attachments/assets/624b71bd-0e7d-44ee-99c5-05e7599a67c3" />
 
+### Settings
+
+New settings will be inserted in the VGMdb preferences panel. 
+<img width="1284" height="141" alt="image" src="https://github.com/user-attachments/assets/0e025074-04be-4dca-8165-a8c03c4590a9" />
+
 ### Acknowledgements
 
 The date format part of this script was inspired by [VGMdb Date Format YYYY-MM-DD](https://greasyfork.org/en/scripts/527467-vgmdb-date-format-yyyy-mm-dd).
@@ -118,6 +123,15 @@ When this script is enabled, the following features will be added to the add alb
 Example of how to use the VGMdb Custom Settings library to insert custom buttons in the VGMdb settings component.
 
 Will import (through @require statement) the [VGMdb Custom Settings](#vgmdb-custom-settings-library) library automatically.
+
+### Features
+
+Inserts an example checkbox.
+
+### Settings
+
+New settings will be inserted in the VGMdb preferences panel. 
+<img width="1279" height="105" alt="image" src="https://github.com/user-attachments/assets/152e66ab-cd7f-4c99-be16-62c2b2a1a16b" />
 
 ## [VGMdb Custom Settings (library)](components/VGMdb%20Custom%20Settings.js)
 
