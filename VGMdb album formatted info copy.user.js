@@ -6,6 +6,7 @@
 // @author       kahpaibe
 // @match        https://vgmdb.net/album/*
 // @grant        none
+// @require      https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
 // @run-at       document-end
 // ==/UserScript==
 
@@ -121,6 +122,7 @@
     color = "#CEFFFF",
   } = {}) {
     const button = document.createElement("button");
+    button.className = 'albummetadata-button';
     button.innerText = text;
     button.title = tooltip;
 
@@ -137,6 +139,50 @@
 
     button.addEventListener("click", onClick);
     return button;
+  }
+
+  // --- Custom Settings integration ---
+  let settingsManager = null;
+
+  function updateAlbummetadataVisibility() {
+    const show = settingsManager
+      ? settingsManager.getSetting('vgaic_showButtons', true)
+      : true;
+    document.querySelectorAll('.albummetadata-button').forEach((el) => {
+      if (show) {
+        el.style.removeProperty('display');
+      } else {
+        el.style.setProperty('display', 'none', 'important');
+      }
+    });
+  }
+
+  function ensureSettingsManager() {
+    if (settingsManager) return settingsManager;
+    if (!window.VGMdbCustomSettings || typeof window.VGMdbCustomSettings.createManager !== 'function') {
+      return null;
+    }
+
+    settingsManager = window.VGMdbCustomSettings.createManager({
+      storageKey: 'vgmdbAlbumFormattedInfoCopySettings',
+      containerId: 'vgmdbAlbumFormattedInfoCopySettingsContainer',
+      config: {
+        '(custom) VGMdb album formatted info copy': [
+          {
+            type: 'checkbox',
+            id: 'vgaic_showButtons',
+            label: 'Formatted metadata buttons',
+            default: true,
+            onChange: function (value) {
+              updateAlbummetadataVisibility();
+            },
+          },
+        ],
+      },
+    });
+
+    settingsManager.mount();
+    return settingsManager;
   }
 
   // Global setup function
@@ -361,6 +407,9 @@
       });
       discussSpan.insertBefore(button, discussLink);
     });
+    // Apply settings visibility if available
+    ensureSettingsManager();
+    updateAlbummetadataVisibility();
   }
 
   // Run the setup function immediately
