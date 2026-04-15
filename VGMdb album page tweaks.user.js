@@ -7,7 +7,7 @@
 // @match        https://vgmdb.net/album/*
 // @grant        none
 // @run-at       document-end
-// @require      https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings%20test.js
+// @require      https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
 // ==/UserScript==
 
 (function () {
@@ -263,7 +263,9 @@
           .filter((line) => line);
         title.innerHTML = "";
         lines.forEach((line, index) => {
-          const lineText = line.replace(/<[^>]*>/g, "");
+          // Remove any HTML, then strip a leading "/" separator (e.g. " / ")
+          const raw = line.replace(/<[^>]*>/g, "");
+          const lineText = raw.replace(/^\s*\/\s*/, "").trim();
           const button = createButton({
             tooltip: "Copy to clipboard",
             group: BUTTON_GROUPS.title,
