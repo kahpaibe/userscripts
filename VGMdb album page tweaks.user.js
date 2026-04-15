@@ -7,7 +7,7 @@
 // @match        https://vgmdb.net/album/*
 // @grant        none
 // @run-at       document-end
-// @require      https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings%20test.js
+// @require      https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
 // ==/UserScript==
 
 (function () {
