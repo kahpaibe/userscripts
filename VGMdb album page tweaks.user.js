@@ -263,7 +263,9 @@
           .filter((line) => line);
         title.innerHTML = "";
         lines.forEach((line, index) => {
-          const lineText = line.replace(/<[^>]*>/g, "");
+          // Remove any HTML, then strip a leading "/" separator (e.g. " / ")
+          const raw = line.replace(/<[^>]*>/g, "");
+          const lineText = raw.replace(/^\s*\/\s*/, "").trim();
           const button = createButton({
             tooltip: "Copy to clipboard",
             group: BUTTON_GROUPS.title,
