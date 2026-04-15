@@ -131,7 +131,7 @@ Inserts an example checkbox.
 ### Settings
 
 New settings will be inserted in the VGMdb preferences panel. 
-<img width="1279" height="105" alt="image" src="https://github.com/user-attachments/assets/152e66ab-cd7f-4c99-be16-62c2b2a1a16b" />
+<img width="1279" height="149" alt="image" src="https://github.com/user-attachments/assets/38d99ad8-e869-46fa-88e6-0d0c47754ac1" />
 
 ## [VGMdb Custom Settings (library)](components/VGMdb%20Custom%20Settings.js)
 
