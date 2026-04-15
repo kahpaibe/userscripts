@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VGMdb album page tweaks
 // @namespace    https://vgmdb.net/
-// @version      0.9
+// @version      1.0
 // @description  Tweaks for VGMdb album pages: custom date format, insert buttons to copy metadata, title and tracklists to clipboard.
 // @author       kahpaibe
 // @match        https://vgmdb.net/album/*

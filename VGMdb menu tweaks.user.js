@@ -3,7 +3,8 @@
 // @namespace   Violentmonkey Scripts
 // @match       https://vgmdb.net/*
 // @grant       GM_addStyle
-// @version     0.9
+// @require     https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
+// @version     1.0
 // @author      kahpaibe
 // @description Insert buttons in VGMdb subnav and navmember menus
 // @run-at      document-idle
@@ -59,6 +60,75 @@
       tooltip: "See user's entries in mod queue",
     },
   ];
+
+  // --- Custom Settings integration ---
+  // Will be created if the VGMdb Custom Settings library is available.
+  let settingsManager = null;
+
+  function updateSubnavVisibility() {
+    const show = settingsManager
+      ? settingsManager.getSetting('vgmmt_showSubnavButtons', true)
+      : true;
+    document.querySelectorAll('#subnav .subnav-button').forEach((el) => {
+      if (show) {
+        el.style.removeProperty('display');
+      } else {
+        el.style.setProperty('display', 'none', 'important');
+      }
+    });
+  }
+
+  function updateNavmemberVisibility() {
+    const show = settingsManager
+      ? settingsManager.getSetting('vgmmt_showNavmemberButtons', true)
+      : true;
+    document.querySelectorAll('tr[id^="navmember_custom"]').forEach((el) => {
+      if (show) {
+        el.style.removeProperty('display');
+      } else {
+        el.style.setProperty('display', 'none', 'important');
+      }
+    });
+  }
+
+  function ensureSettingsManager() {
+    if (settingsManager) return settingsManager;
+    if (!window.VGMdbCustomSettings || typeof window.VGMdbCustomSettings.createManager !== 'function') {
+      // Library missing; nothing to do. Buttons will default to visible.
+      return null;
+    }
+
+    settingsManager = window.VGMdbCustomSettings.createManager({
+      storageKey: 'vgmdbMenuTweaksSettings',
+      containerId: 'vgmdbMenuTweaksSettingsContainer',
+      config: {
+        '(custom) VGMdb menu tweaks': [
+          {
+            type: 'checkbox',
+            id: 'vgmmt_showNavmemberButtons',
+            label: 'Show navmember buttons',
+            default: true,
+            onChange: function (value) {
+              updateNavmemberVisibility();
+            },
+          },
+          {
+            type: 'checkbox',
+            id: 'vgmmt_showSubnavButtons',
+            label: 'Show subnav buttons',
+            default: true,
+            onChange: function (value) {
+              updateSubnavVisibility();
+            },
+          },
+        ],
+      },
+    });
+
+    settingsManager.mount();
+
+    return settingsManager;
+  }
 
   // Main function for subnav features
   function subnavSetup() {
@@ -154,6 +224,10 @@
 
           subnavUl.insertBefore(li, lastLi.nextSibling);
         });
+
+      // Apply visibility according to settings (if available)
+      ensureSettingsManager();
+      updateSubnavVisibility();
     }
 
     insertSubnavButtons();
@@ -234,6 +308,10 @@
 
     // Call the insertion function
     navmemberInsertButtons();
+
+    // Ensure settings manager exists and apply visibility state
+    ensureSettingsManager();
+    updateNavmemberVisibility();
   }
 
   // Call the setup functions
