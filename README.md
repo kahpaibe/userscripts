@@ -2,7 +2,7 @@
 
 Some useful userscripts to use with your favorite manager such as Violentmonkey or Tampermonkey.
 
-## Wayback URLs quick open
+## [Wayback URLs quick open](Wayback%20URLs%20quick%20open.user.js)
 
 Insert buttons on Wayback machine URLs page to quickly open respective urls.
 
@@ -19,7 +19,7 @@ A **Batch open** button will also be inserted at the top. This button will promp
 
 <img width="2621" height="1168" alt="Wayback URLs quick open" src="https://github.com/user-attachments/assets/1c43aa91-9dfc-4b86-aa33-38cd7d04eb5a" />
 
-## VGMDB menu tweaks
+## [VGMDB menu tweaks](VGMDB%20menu%20tweaks.user.js)
 
 Insert user-defined buttons on VGMdb menus: subnav menu (main) and navmember menu (user drop-down, only shown when user is logged in).
 
@@ -53,10 +53,11 @@ User info can also be used in these definitions using the built-in `getUserInfo`
 
 <img width="1201" height="567" alt="VGMDB menu tweaks" src="https://github.com/user-attachments/assets/6e44b200-9575-4c22-8614-65d9db82443a" />
 
-
-## VGMDB album page tweaks
+## [VGMDB album page tweaks](VGMDB%20album%20page%20tweaks.user.js)
 
 Add quality of life features to VGMdb album pages.
+
+Will import (through @require statement) the [VGMdb Custom Settings](#vgmdb-custom-settings-library) library automatically.
 
 ### Features
 
@@ -70,11 +71,16 @@ When this script is enabled, the following features will be added to album pages
 
 <img width="1302" height="1451" alt="VGMDB album page tweaks" src="https://github.com/user-attachments/assets/624b71bd-0e7d-44ee-99c5-05e7599a67c3" />
 
+### Settings
+
+New settings will be inserted in the VGMdb preferences panel. 
+<img width="1284" height="141" alt="image" src="https://github.com/user-attachments/assets/0e025074-04be-4dca-8165-a8c03c4590a9" />
+
 ### Acknowledgements
 
 The date format part of this script was inspired by [VGMdb Date Format YYYY-MM-DD](https://greasyfork.org/en/scripts/527467-vgmdb-date-format-yyyy-mm-dd).
 
-## VGMdb album formatted info copy
+## [VGMdb album formatted info copy](VGMDB%20album%20formatted%20info%20copy.user.js)
 
 Copy album metadata as a formatted string to clipboard, made very easy to customize.
 
@@ -96,7 +102,7 @@ Formatted string buttons are defined in the `albummetadataButtonSettings` list, 
 
 <img width="806" height="182" alt="VGMdb album formatted info copy" src="https://github.com/user-attachments/assets/489a6d00-e1cc-4fcd-ad23-f0ddf186183a" />
 
-## VGMdb add album tweaks
+## [VGMdb add album tweaks](VGMDB%20add%20album%20tweaks.user.js)
 
 Insert quality of life features to VGMdb add album pages.
 
@@ -111,3 +117,22 @@ When this script is enabled, the following features will be added to the add alb
 **Product query and insertion**, a new button will allow querying the VGMdb database for products and inserting them in the form. The language priority telling which name to keep for products is defined in the customizable `albumAddQueryProductsLanguagePriority` array.
 
 <img width="2500" height="1275" alt="VGMdb add album tweaks" src="https://github.com/user-attachments/assets/464a3b6e-5161-4857-a7f8-9275559786b0" />
+
+## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
+
+Example of how to use the VGMdb Custom Settings library to insert custom buttons in the VGMdb settings component.
+
+Will import (through @require statement) the [VGMdb Custom Settings](#vgmdb-custom-settings-library) library automatically.
+
+### Features
+
+Inserts an example checkbox.
+
+### Settings
+
+New settings will be inserted in the VGMdb preferences panel. 
+<img width="1279" height="149" alt="image" src="https://github.com/user-attachments/assets/38d99ad8-e869-46fa-88e6-0d0c47754ac1" />
+
+## [VGMdb Custom Settings (library)](components/VGMdb%20Custom%20Settings.js)
+
+Library made to add custom settings to VGMdb pages, allowing users to easily insert their own settings buttons in the VGMdb settings component. To use it, refer to the [VGMdb Custom Settings minimal example](#vgmdb-custom-settings-minimal-example) userscript.
