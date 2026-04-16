@@ -116,7 +116,15 @@ When this script is enabled, the following features will be added to the add alb
 
 **Product query and insertion**, a new button will allow querying the VGMdb database for products and inserting them in the form. The language priority telling which name to keep for products is defined in the customizable `albumAddQueryProductsLanguagePriority` array.
 
+**Organization query and insertion**, a new button will allow querying the VGMdb database for organizations and inserting them in the form.
+
 <img width="2500" height="1275" alt="VGMdb add album tweaks" src="https://github.com/user-attachments/assets/464a3b6e-5161-4857-a7f8-9275559786b0" />
+
+### Settings
+
+New settings will be inserted in the VGMdb preferences panel. 
+<img width="1278" height="132" alt="image" src="https://github.com/user-attachments/assets/a439c06b-c375-4904-b9a9-654abb6efefe" />
+
 
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
