@@ -13,6 +13,9 @@
 (function () {
   "use strict";
 
+  /*********************************************
+   * User configuration
+   ********************************************/
   // Global button settings
   const albummetadataButtonSettings = [
     // {title: "...", tooltip: "...", formatFunction: (url, coverurl, titles, notes, links, albuminfo, credits, tracklists) => {...}, [color: "..."]}
@@ -114,6 +117,9 @@
     },
   ];
 
+  /*********************************************
+   * Misc utilities
+   ********************************************/
   // Shared button creation utility
   function createButton({
     text = "⎘",
@@ -141,7 +147,9 @@
     return button;
   }
 
-  // --- Custom Settings integration ---
+  /*********************************************
+   * Custom settings handling
+   ********************************************/
   let settingsManager = null;
 
   function updateAlbummetadataVisibility() {
@@ -185,6 +193,9 @@
     return settingsManager;
   }
 
+  /*********************************************
+   * Main features implementation
+   ********************************************/
   // Global setup function
   function albummetadataSetup() {
     function parseMetadata() {
@@ -412,6 +423,9 @@
     updateAlbummetadataVisibility();
   }
 
+  /*********************************************
+   * Setup and initialization
+   ********************************************/
   // Run the setup function immediately
   albummetadataSetup();
 })();
