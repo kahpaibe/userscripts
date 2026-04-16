@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VGMdb album page tweaks
 // @namespace    https://vgmdb.net/
-// @version      0.9
+// @version      1.0
 // @description  Tweaks for VGMdb album pages: custom date format, insert buttons to copy metadata, title and tracklists to clipboard.
 // @author       kahpaibe
 // @match        https://vgmdb.net/album/*
@@ -13,6 +13,9 @@
 (function () {
   "use strict";
 
+  /*********************************************
+   * User configuration
+   ********************************************/
   function formatDateOverride(dateObj) {
     // Format date as YYYY.MM.DD with leading zeros for month and day
     return `${dateObj.getFullYear()}.${("0" + (dateObj.getMonth() + 1)).slice(-2)}.${("0" + dateObj.getDate()).slice(-2)}`;
@@ -32,6 +35,9 @@
   const perLangBtnFullName_pressed = "✔ COPIED";
   const perLangBtnFullMO = "Copy tracklists of all discs";
 
+  /*********************************************
+   * Custom settings handling
+   ********************************************/
   // Custom settings button management
   if (
     !window.VGMdbCustomSettings ||
@@ -130,6 +136,9 @@
     },
   });
 
+  /*********************************************
+   * Misc utilities
+   ********************************************/
   // Shared button creation utility
   function createButton({
     text = "⎘",
@@ -160,6 +169,9 @@
     return button;
   }
 
+  /*********************************************
+   * Main features implementation
+   ********************************************/
   // Main function for date override
   // Apply or revert custom date formatting on matching links.
   function dateOverrideApply(enabled) {
@@ -457,6 +469,9 @@
     });
   }
 
+  /*********************************************
+   * Setup and initialization
+   ********************************************/
   // Call the setup functions
   dateOverrideSetup();
   metadatacopySetup();
