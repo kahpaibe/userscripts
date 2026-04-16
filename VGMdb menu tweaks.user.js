@@ -13,6 +13,9 @@
 (function () {
   "use strict";
 
+  /*********************************************
+   * User configuration
+   ********************************************/
   /* Retrieve user info, returns {name: "...", id: "..."}. If not logged in, returns {name: null, id: null} */
   function getUserInfo() {
     // Get user name
@@ -61,61 +64,66 @@
     },
   ];
 
-  // --- Custom Settings integration ---
+  /*********************************************
+   * Custom settings handling
+   ********************************************/
   // Will be created if the VGMdb Custom Settings library is available.
   let settingsManager = null;
 
   function updateSubnavVisibility() {
     const show = settingsManager
-      ? settingsManager.getSetting('vgmmt_showSubnavButtons', true)
+      ? settingsManager.getSetting("vgmmt_showSubnavButtons", true)
       : true;
-    document.querySelectorAll('#subnav .subnav-button').forEach((el) => {
+    document.querySelectorAll("#subnav .subnav-button").forEach((el) => {
       if (show) {
-        el.style.removeProperty('display');
+        el.style.removeProperty("display");
       } else {
-        el.style.setProperty('display', 'none', 'important');
+        el.style.setProperty("display", "none", "important");
       }
     });
   }
 
   function updateNavmemberVisibility() {
     const show = settingsManager
-      ? settingsManager.getSetting('vgmmt_showNavmemberButtons', true)
+      ? settingsManager.getSetting("vgmmt_showNavmemberButtons", true)
       : true;
     document.querySelectorAll('tr[id^="navmember_custom"]').forEach((el) => {
       if (show) {
-        el.style.removeProperty('display');
+        el.style.removeProperty("display");
       } else {
-        el.style.setProperty('display', 'none', 'important');
+        el.style.setProperty("display", "none", "important");
       }
     });
   }
 
   function ensureSettingsManager() {
     if (settingsManager) return settingsManager;
-    if (!window.VGMdbCustomSettings || typeof window.VGMdbCustomSettings.createManager !== 'function') {
+    if (
+      !window.VGMdbCustomSettings ||
+      typeof window.VGMdbCustomSettings.createManager !== "function"
+    ) {
       // Library missing; nothing to do. Buttons will default to visible.
       return null;
     }
 
     settingsManager = window.VGMdbCustomSettings.createManager({
-      storageKey: 'vgmdbMenuTweaksSettings',
-      containerId: 'vgmdbMenuTweaksSettingsContainer',
+      storageKey: "vgmdbMenuTweaksSettings",
+      containerId: "vgmdbMenuTweaksSettingsContainer",
       config: {
-        '(custom) VGMdb menu tweaks': [
+        "(custom) VGMdb menu tweaks": [
           {
-            type: 'checkbox',
-            id: 'vgmmt_showNavmemberButtons',
-            label: 'Show navmember buttons',
+            type: "checkbox",
+            id: "vgmmt_showNavmemberButtons",
+            label: "Show navmember buttons",
             default: true,
             onChange: function (value) {
               updateNavmemberVisibility();
             },
           },
           {
-            type: 'checkbox',
-            id: 'vgmmt_showSubnavButtons',
-            label: 'Show subnav buttons',
+            type: "checkbox",
+            id: "vgmmt_showSubnavButtons",
+            label: "Show subnav buttons",
             default: true,
             onChange: function (value) {
               updateSubnavVisibility();
@@ -130,6 +138,9 @@
     return settingsManager;
   }
 
+  /*********************************************
+   * Main features implementation
+   ********************************************/
   // Main function for subnav features
   function subnavSetup() {
     // Centralized style for subnav buttons
@@ -308,13 +319,16 @@
 
     // Call the insertion function
     navmemberInsertButtons();
-
-    // Ensure settings manager exists and apply visibility state
-    ensureSettingsManager();
-    updateNavmemberVisibility();
   }
 
+  /*********************************************
+   * Setup and initialization
+   ********************************************/
   // Call the setup functions
   subnavSetup();
   navmemberSetup();
+
+  // Ensure settings manager exists and apply visibility state
+  ensureSettingsManager();
+  updateNavmemberVisibility();
 })();

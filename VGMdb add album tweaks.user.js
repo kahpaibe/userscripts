@@ -4,7 +4,8 @@
 // @match       https://vgmdb.net/album/new
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
-// @version     0.8
+// @require     https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
+// @version     0.9
 // @author      kahpaibe
 // @description Tweaks for VGMdb new album pages: Quick date entry, selected items display, product query and insertion.
 // @run-at      document-idle
@@ -13,6 +14,9 @@
 (function () {
   "use strict";
 
+  /*********************************************
+   * User configuration
+   ********************************************/
   // List of regex patterns to try for quick date parsing
   const albumAddQuickDateDateRegexes = [
     // {expr: /.../, desc: "..."}
@@ -29,6 +33,12 @@
   // Selected items display font color
   const albumAddSelectedItemsFontColor = "#AAAA";
 
+  // Language priority for queried product names.
+  const albumAddQueryProductsLanguagePriority = ["ja-Latn", "ja", "en"];
+
+  /*********************************************
+   * Misc utilities
+   ********************************************/
   // Inject CSS required for searchable dropdowns
   function injectCSS() {
     const link = document.createElement("link");
@@ -37,9 +47,9 @@
     document.head.appendChild(link);
   }
 
-  // Language priority for queried product names.
-  const albumAddQueryProductsLanguagePriority = ["ja-Latn", "ja", "en"];
-
+  /*********************************************
+   * Main features implementation
+   ********************************************/
   // Main function for quick date button
   function albumAddQuickDateSetup() {
     let retries = 0;
@@ -229,6 +239,7 @@
       // Main container
       const container = document.createElement("div");
       container.className = "tail-select no-classes open-top";
+      container.id = "albumAddProductsDropdown";
       container.tabIndex = 0;
 
       // Label
@@ -382,7 +393,6 @@
         const searchUrl = `/search?q=${encodedKeywords}&type=product`;
 
         console.info(`Fetching products for: ${searchUrl}`);
-
         GM_xmlhttpRequest({
           method: "GET",
           url: searchUrl,
@@ -460,8 +470,346 @@
     insertQueryButton();
   }
 
+  // Main function for organization query (publisher)
+  function albumAddQueryOrgsSetup() {
+    let retries = 0;
+    const maxRetries = 10;
+    const retryDelay = 500; // ms
+
+    function createOrgSearchableDropdown() {
+      // Main container
+      const container = document.createElement("div");
+      container.className = "tail-select no-classes open-top";
+      container.id = "albumAddOrgsDropdown";
+      container.tabIndex = 0;
+
+      // Label
+      const label = document.createElement("div");
+      label.className = "select-label";
+      label.innerHTML =
+        '<span class="label-inner">Insert an organization... (0)</span>';
+      container.appendChild(label);
+
+      // Dropdown (hidden by default)
+      const dropdown = document.createElement("div");
+      dropdown.className = "select-dropdown";
+      dropdown.style.maxHeight = "350px";
+      dropdown.style.height = "auto";
+      dropdown.style.display = "none";
+      dropdown.style.overflow = "visible";
+
+      // Search input
+      const searchDiv = document.createElement("div");
+      searchDiv.className = "dropdown-search";
+      const searchInput = document.createElement("input");
+      searchInput.type = "text";
+      searchInput.className = "search-input";
+      searchInput.placeholder = "Type in to search...";
+      searchDiv.appendChild(searchInput);
+      dropdown.appendChild(searchDiv);
+
+      // Options container
+      const optionsContainer = document.createElement("div");
+      optionsContainer.className = "dropdown-inner";
+      optionsContainer.style.maxHeight = "316px";
+      optionsContainer.style.overflowY = "auto";
+
+      // Optgroup for orgs
+      const optgroup = document.createElement("ul");
+      optgroup.className = "dropdown-optgroup";
+      optgroup.setAttribute("data-group", "Organizations");
+      optionsContainer.appendChild(optgroup);
+
+      dropdown.appendChild(optionsContainer);
+      container.appendChild(dropdown);
+
+      // Hidden input
+      const hiddenInput = document.createElement("input");
+      hiddenInput.className = "select-search";
+      hiddenInput.type = "hidden";
+      hiddenInput.name = "selected_organization";
+      container.appendChild(hiddenInput);
+
+      return { container, dropdown, optgroup };
+    }
+
+    function toggleDropdownVisibility(dropdown) {
+      dropdown.style.display =
+        dropdown.style.display === "block" ? "none" : "block";
+    }
+
+    function hideDropdown(dropdown) {
+      dropdown.style.display = "none";
+    }
+
+    function filterDropdownOptions(optgroup, searchTerm) {
+      const options = optgroup.querySelectorAll(".dropdown-option");
+      options.forEach((option) => {
+        const text = option.textContent.toLowerCase();
+        option.style.display = text.includes(searchTerm) ? "block" : "none";
+      });
+    }
+
+    function insertOrgQueryButton() {
+      const publisherLabel = document.querySelector('label[for="publisher"]');
+      if (!publisherLabel) {
+        if (retries < maxRetries) {
+          retries++;
+          setTimeout(insertOrgQueryButton, retryDelay);
+        } else {
+          console.error("Publisher label not found.");
+        }
+        return;
+      }
+
+      // Remove existing org-specific elements
+      const existingButton = document.getElementById("albumAddOrgsQueryButton");
+      const existingDropdown = document.getElementById("albumAddOrgsDropdown");
+      if (existingButton) existingButton.parentNode.remove();
+      if (existingDropdown) existingDropdown.remove();
+
+      // Create button container and input
+      const buttonDiv = document.createElement("div");
+      buttonDiv.className = "submit";
+      buttonDiv.style.display = "inline-block";
+      buttonDiv.style.marginRight = "10px";
+
+      const queryButton = document.createElement("input");
+      queryButton.id = "albumAddOrgsQueryButton";
+      queryButton.className = "button";
+      queryButton.type = "button";
+      queryButton.value = "Query Organizations";
+
+      buttonDiv.appendChild(queryButton);
+
+      // Create and insert the searchable dropdown
+      const {
+        container: orgDropdown,
+        dropdown,
+        optgroup,
+      } = createOrgSearchableDropdown();
+      publisherLabel.parentNode.insertBefore(orgDropdown, publisherLabel);
+      publisherLabel.parentNode.insertBefore(buttonDiv, orgDropdown);
+
+      // Toggle dropdown visibility when clicking the container label
+      orgDropdown
+        .querySelector(".select-label")
+        .addEventListener("click", (e) => {
+          e.stopPropagation();
+          toggleDropdownVisibility(dropdown);
+        });
+
+      // Prevent dropdown from closing when clicking inside it
+      dropdown.addEventListener("click", (e) => {
+        e.stopPropagation();
+      });
+
+      // Close dropdown when clicking outside
+      document.addEventListener("click", (e) => {
+        if (!orgDropdown.contains(e.target)) {
+          hideDropdown(dropdown);
+        }
+      });
+
+      // Filter options on search
+      const searchInput = orgDropdown.querySelector(".search-input");
+      searchInput.addEventListener("input", () => {
+        const searchTerm = searchInput.value.toLowerCase();
+        filterDropdownOptions(optgroup, searchTerm);
+      });
+
+      queryButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const keywords = prompt("Enter organization search keywords:");
+        if (!keywords) return;
+
+        const encodedKeywords = encodeURIComponent(keywords).replace(
+          /%20/g,
+          "+",
+        );
+        const searchUrl = `/search?q=${encodedKeywords}&type=org`;
+
+        console.info(`Fetching organizations for: ${searchUrl}`);
+
+        GM_xmlhttpRequest({
+          method: "GET",
+          url: searchUrl,
+          onload: function (response) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(
+              response.responseText,
+              "text/html",
+            );
+            const orgRows = doc.querySelectorAll(
+              "table.results tbody:nth-of-type(2) tr",
+            );
+
+            // Clear previous options
+            optgroup.innerHTML = "";
+
+            const orgs = [];
+            orgRows.forEach((row) => {
+              const link = row.querySelector("td.orgname a");
+              if (!link) return;
+
+              const name = link.textContent.trim();
+              const orgUrl = link.href;
+              const orgIdMatch = orgUrl.match(/\/org\/(\d+)/);
+              const orgId = orgIdMatch ? orgIdMatch[1] : null;
+              orgs.push({ id: orgId, name: name });
+
+              const option = document.createElement("li");
+              option.className = "dropdown-option";
+              option.textContent = name;
+              option.dataset.key = orgId;
+              optgroup.appendChild(option);
+
+              option.addEventListener("click", () => {
+                const input = document.querySelector('input[name="publisher"]');
+                if (input) {
+                  let publishers = input.value
+                    .split(", ")
+                    .map((p) => p.trim())
+                    .filter((p) => p.length > 0);
+                  publishers.push(name);
+                  input.value = publishers.join(", ");
+                  dropdown.style.display = "none";
+                }
+              });
+            });
+
+            // Update label
+            const label = orgDropdown.querySelector(
+              ".select-label .label-inner",
+            );
+            if (label)
+              label.textContent = `Insert an organization... (${orgs.length})`;
+            console.log("Found organizations:", orgs);
+          },
+        });
+      });
+    }
+
+    injectCSS();
+    insertOrgQueryButton();
+  }
+
+  /*********************************************
+   * Custom settings handling
+   ********************************************/
+  if (
+    window.VGMdbCustomSettings &&
+    typeof window.VGMdbCustomSettings.createManager === "function"
+  ) {
+    const settingsManager = window.VGMdbCustomSettings.createManager({
+      storageKey: "vgmdbAddAlbumTweaksSettings",
+      containerId: "vgmdbAddAlbumTweaksSettingsContainer",
+      config: {
+        "(custom) VGMdb add album tweaks": [
+          {
+            type: "checkbox",
+            id: "showSelectedItems",
+            label: "Selected items display",
+            default: true,
+            onChange: function (value) {
+              document
+                .querySelectorAll('[id^="selectedItems_"]')
+                .forEach((el) => {
+                  el.style.display = value ? "" : "none";
+                });
+            },
+          },
+          {
+            type: "checkbox",
+            id: "enableQuickDate",
+            label: "Quick date",
+            default: true,
+            onChange: function (value) {
+              const el = document.getElementById("albumAddQuickDateButtonDiv");
+              if (el) el.style.display = value ? "inline-block" : "none";
+            },
+          },
+          {
+            type: "checkbox",
+            id: "enableQueryProducts",
+            label: "Query products",
+            default: true,
+            onChange: function (value) {
+              const btn = document.getElementById(
+                "albumAddProductsQueryButton",
+              );
+              if (btn && btn.parentNode)
+                btn.parentNode.style.display = value ? "inline-block" : "none";
+              const dd = document.getElementById("albumAddProductsDropdown");
+              if (dd) dd.style.display = value ? "" : "none";
+            },
+          },
+          {
+            type: "checkbox",
+            id: "enableQueryOrgs",
+            label: "Query orgs",
+            default: true,
+            onChange: function (value) {
+              const btn = document.getElementById("albumAddOrgsQueryButton");
+              if (btn && btn.parentNode)
+                btn.parentNode.style.display = value ? "inline-block" : "none";
+              const dd = document.getElementById("albumAddOrgsDropdown");
+              if (dd) dd.style.display = value ? "" : "none";
+            },
+          },
+        ],
+      },
+    });
+
+    // Mount the settings UI (if available) and apply initial visibility
+    settingsManager.mount();
+
+    // Apply initial visibility based on saved settings
+    try {
+      const showSelected = settingsManager.getSetting(
+        "showSelectedItems",
+        true,
+      );
+      document.querySelectorAll('[id^="selectedItems_"]').forEach((el) => {
+        el.style.display = showSelected ? "" : "none";
+      });
+
+      const quickDateEnabled = settingsManager.getSetting(
+        "enableQuickDate",
+        true,
+      );
+      const quickEl = document.getElementById("albumAddQuickDateButtonDiv");
+      if (quickEl)
+        quickEl.style.display = quickDateEnabled ? "inline-block" : "none";
+
+      const prodEnabled = settingsManager.getSetting(
+        "enableQueryProducts",
+        true,
+      );
+      const prodBtn = document.getElementById("albumAddProductsQueryButton");
+      if (prodBtn && prodBtn.parentNode)
+        prodBtn.parentNode.style.display = prodEnabled
+          ? "inline-block"
+          : "none";
+      const prodDd = document.getElementById("albumAddProductsDropdown");
+      if (prodDd) prodDd.style.display = prodEnabled ? "" : "none";
+
+      const orgEnabled = settingsManager.getSetting("enableQueryOrgs", true);
+      const orgBtn = document.getElementById("albumAddOrgsQueryButton");
+      if (orgBtn && orgBtn.parentNode)
+        orgBtn.parentNode.style.display = orgEnabled ? "inline-block" : "none";
+      const orgDd = document.getElementById("albumAddOrgsDropdown");
+      if (orgDd) orgDd.style.display = orgEnabled ? "" : "none";
+    } catch (e) {
+      console.warn("Settings apply failed", e);
+    }
+  }
+
   // Call the setup functions
   albumAddSelectedItemsSetup();
   albumAddQuickDateSetup();
   albumAddQueryProductsSetup();
+  albumAddQueryOrgsSetup();
 })();
