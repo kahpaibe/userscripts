@@ -410,31 +410,42 @@
             optgroup.innerHTML = "";
 
             const products = [];
-            productRows.forEach((row) => {
-              const link = row.querySelector("td.productname a");
-              if (!link) return;
 
-              const spans = link.querySelectorAll("span.productname");
-              let name = null;
-
-              for (const lang of albumAddQueryProductsLanguagePriority) {
-                const span = Array.from(spans).find((s) => s.lang === lang);
-                if (span) {
-                  name = span.textContent;
-                  break;
+            if (productRows.length === 0) { // No results, may be the product page itself if only 1 match
+              const titleElement = doc.querySelector("h1#maintitle");
+              let directName = null;
+              if (titleElement) {
+                const spans = titleElement.querySelectorAll("span.albumtitle");
+                for (const lang of albumAddQueryProductsLanguagePriority) {
+                  const span = Array.from(spans).find((s) => s.lang === lang);
+                  if (span) {
+                    directName = span.textContent.trim();
+                    break;
+                  }
+                }
+                if (!directName) {
+                  directName = titleElement.textContent.trim();
+                }
+                if (directName) {
+                  directName = directName.replace(/^\s*\/\s*/, "");
                 }
               }
 
-              if (name) {
-                const productUrl = link.href;
-                const productIdMatch = productUrl.match(/\/product\/(\d+)/);
-                const productId = productIdMatch ? productIdMatch[1] : null;
-                products.push({ id: productId, name: name });
+              const discussLink = doc.querySelector(
+                'a[href*="/db/product-discuss.php?id="]',
+              );
+              const productIdMatch = discussLink
+                ? discussLink.href.match(/id=(\d+)/)
+                : null;
+              const directProductId = productIdMatch ? productIdMatch[1] : null;
+
+              if (directName) {
+                products.push({ id: directProductId, name: directName });
 
                 const option = document.createElement("li");
                 option.className = "dropdown-option";
-                option.textContent = name;
-                option.dataset.key = productId;
+                option.textContent = directName;
+                if (directProductId) option.dataset.key = directProductId;
                 optgroup.appendChild(option);
 
                 option.addEventListener("click", () => {
@@ -446,13 +457,57 @@
                       .split(", ")
                       .map((p) => p.trim())
                       .filter((p) => p.length > 0);
-                    products.push(name);
+                    products.push(directName);
                     textarea.value = products.join(", ");
                     dropdown.style.display = "none";
                   }
                 });
               }
-            });
+            } else { // Search results page, list products
+              productRows.forEach((row) => {
+                const link = row.querySelector("td.productname a");
+                if (!link) return;
+
+                const spans = link.querySelectorAll("span.productname");
+                let name = null;
+
+                for (const lang of albumAddQueryProductsLanguagePriority) {
+                  const span = Array.from(spans).find((s) => s.lang === lang);
+                  if (span) {
+                    name = span.textContent;
+                    break;
+                  }
+                }
+
+                if (name) {
+                  const productUrl = link.href;
+                  const productIdMatch = productUrl.match(/\/product\/(\d+)/);
+                  const productId = productIdMatch ? productIdMatch[1] : null;
+                  products.push({ id: productId, name: name });
+
+                  const option = document.createElement("li");
+                  option.className = "dropdown-option";
+                  option.textContent = name;
+                  option.dataset.key = productId;
+                  optgroup.appendChild(option);
+
+                  option.addEventListener("click", () => {
+                    const textarea = document.querySelector(
+                      'textarea[name="game"]',
+                    );
+                    if (textarea) {
+                      let products = textarea.value
+                        .split(", ")
+                        .map((p) => p.trim())
+                        .filter((p) => p.length > 0);
+                      products.push(name);
+                      textarea.value = products.join(", ");
+                      dropdown.style.display = "none";
+                    }
+                  });
+                }
+              });
+            }
 
             // Update label
             const label = productDropdown.querySelector(
@@ -650,35 +705,70 @@
             optgroup.innerHTML = "";
 
             const orgs = [];
-            orgRows.forEach((row) => {
-              const link = row.querySelector("td.orgname a");
-              if (!link) return;
 
-              const name = link.textContent.trim();
-              const orgUrl = link.href;
-              const orgIdMatch = orgUrl.match(/\/org\/(\d+)/);
-              const orgId = orgIdMatch ? orgIdMatch[1] : null;
-              orgs.push({ id: orgId, name: name });
+            if (orgRows.length === 0) { // No results, may be the organization page itself if only 1 match
+              const directOrgName = doc.querySelector("h1")?.textContent.trim();
+              const discussLink = doc.querySelector(
+                'a[href*="/db/org-discuss.php?id="]',
+              );
+              const orgIdMatch = discussLink
+                ? discussLink.href.match(/id=(\d+)/)
+                : null;
+              const directOrgId = orgIdMatch ? orgIdMatch[1] : null;
 
-              const option = document.createElement("li");
-              option.className = "dropdown-option";
-              option.textContent = name;
-              option.dataset.key = orgId;
-              optgroup.appendChild(option);
+              if (directOrgName) {
+                orgs.push({ id: directOrgId, name: directOrgName });
 
-              option.addEventListener("click", () => {
-                const input = document.querySelector('input[name="publisher"]');
-                if (input) {
-                  let publishers = input.value
-                    .split(", ")
-                    .map((p) => p.trim())
-                    .filter((p) => p.length > 0);
-                  publishers.push(name);
-                  input.value = publishers.join(", ");
-                  dropdown.style.display = "none";
-                }
+                const option = document.createElement("li");
+                option.className = "dropdown-option";
+                option.textContent = directOrgName;
+                if (directOrgId) option.dataset.key = directOrgId;
+                optgroup.appendChild(option);
+
+                option.addEventListener("click", () => {
+                  const input = document.querySelector('input[name="publisher"]');
+                  if (input) {
+                    let publishers = input.value
+                      .split(", ")
+                      .map((p) => p.trim())
+                      .filter((p) => p.length > 0);
+                    publishers.push(directOrgName);
+                    input.value = publishers.join(", ");
+                    dropdown.style.display = "none";
+                  }
+                });
+              }
+            } else { // Search results page, list orgs
+              orgRows.forEach((row) => {
+                const link = row.querySelector("td.orgname a");
+                if (!link) return;
+
+                const name = link.textContent.trim();
+                const orgUrl = link.href;
+                const orgIdMatch = orgUrl.match(/\/org\/(\d+)/);
+                const orgId = orgIdMatch ? orgIdMatch[1] : null;
+                orgs.push({ id: orgId, name: name });
+
+                const option = document.createElement("li");
+                option.className = "dropdown-option";
+                option.textContent = name;
+                option.dataset.key = orgId;
+                optgroup.appendChild(option);
+
+                option.addEventListener("click", () => {
+                  const input = document.querySelector('input[name="publisher"]');
+                  if (input) {
+                    let publishers = input.value
+                      .split(", ")
+                      .map((p) => p.trim())
+                      .filter((p) => p.length > 0);
+                    publishers.push(name);
+                    input.value = publishers.join(", ");
+                    dropdown.style.display = "none";
+                  }
+                });
               });
-            });
+            }
 
             // Update label
             const label = orgDropdown.querySelector(
