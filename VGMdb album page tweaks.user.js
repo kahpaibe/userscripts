@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VGMdb album page tweaks
 // @namespace    https://vgmdb.net/
-// @version      1.0
+// @version      1.1
 // @description  Tweaks for VGMdb album pages: custom date format, insert buttons to copy metadata, title and tracklists to clipboard.
 // @author       kahpaibe
 // @match        https://vgmdb.net/album/*
@@ -269,10 +269,19 @@
     window.addEventListener("load", function () {
       const albumTitles = document.querySelectorAll(albumTitleSelector);
       albumTitles.forEach((title) => {
-        const lines = title.innerHTML
-          .split("<br>")
+        const lines = Array.from(title.childNodes)
+          .reduce((chunks, node) => {
+            if (node.nodeType === Node.ELEMENT_NODE && node.tagName === "BR") {
+              chunks.push("");
+            } else {
+              if (chunks.length === 0) chunks.push("");
+              chunks[chunks.length - 1] += node.textContent;
+            }
+            return chunks;
+          }, [])
           .map((line) => line.trim())
           .filter((line) => line);
+
         title.innerHTML = "";
         lines.forEach((line, index) => {
           // Remove any HTML, then strip a leading "/" separator (e.g. " / ")
