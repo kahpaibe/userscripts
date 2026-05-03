@@ -2,10 +2,11 @@
 // @name        VGMdb add album tweaks
 // @namespace   Violentmonkey Scripts
 // @match       https://vgmdb.net/album/new
+// @match       https://vgmdb.net/album/*/edit
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
 // @require     https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
-// @version     1.0
+// @version     1.1
 // @author      kahpaibe
 // @description Tweaks for VGMdb new album pages: Quick date entry, selected items display, product query and insertion.
 // @run-at      document-idle
