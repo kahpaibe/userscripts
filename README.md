@@ -125,6 +125,17 @@ When this script is enabled, the following features will be added to the add alb
 New settings will be inserted in the VGMdb preferences panel. 
 <img width="1278" height="132" alt="image" src="https://github.com/user-attachments/assets/a439c06b-c375-4904-b9a9-654abb6efefe" />
 
+## [VGMdb mosaic album list](VGMdb%20mosaic%20album%20list.user.js)
+
+Add a button that will show a mosaic view with album thumbnails for album lists.
+
+### Features
+
+When this script is enabled, a new button will be added to album lists (should work for all of them). When clicked, the button will fetch album pages to get the thumbnail urls and show them in a mosaic view.
+
+### Settings
+
+A setting to toggle the mosaic view container (button / mosaic) will be added to the VGMdb preferences panel.
 
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
@@ -140,6 +151,7 @@ Inserts an example checkbox.
 
 New settings will be inserted in the VGMdb preferences panel. 
 <img width="1279" height="149" alt="image" src="https://github.com/user-attachments/assets/38d99ad8-e869-46fa-88e6-0d0c47754ac1" />
+
 
 ## [VGMdb Custom Settings (library)](components/VGMdb%20Custom%20Settings.js)
 
