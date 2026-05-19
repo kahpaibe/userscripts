@@ -136,6 +136,7 @@ When this script is enabled, a new button will be added to album lists (should w
 ### Settings
 
 A setting to toggle the mosaic view container (button / mosaic) will be added to the VGMdb preferences panel.
+<img width="2612" height="1420" alt="image" src="https://github.com/user-attachments/assets/76d7170d-92b0-43e0-a407-977426ea59aa" />
 
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
