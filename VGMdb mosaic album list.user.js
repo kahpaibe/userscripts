@@ -87,13 +87,10 @@
   };
 
   /** Determine if a node looks like a simple album item. */
-  const mosaicIsSimpleAlbumItem = (node) => {
-    return (
-      node.matches("div.smallfont") &&
-      node.querySelector(mosaicAlbumLinkSelector) &&
-      node.querySelector("span.catalog")
-    );
-  };
+  const mosaicIsSimpleAlbumItem = (node) =>
+    node.matches("div.smallfont") &&
+    node.querySelector(mosaicAlbumLinkSelector) &&
+    node.querySelector("span.catalog");
 
   /** Locate the root container for simple album lists. */
   const mosaicFindSimpleListRoot = (link) => {
@@ -127,11 +124,9 @@
       return table;
     }
 
-    const fallback = mosaicFindAncestor(link.parentElement, (node) => {
-      return (
-        mosaicGetAlbumLinkCount(node) >= 2 && node.querySelector("span.catalog")
-      );
-    });
+    const fallback = mosaicFindAncestor(link.parentElement, (node) =>
+      mosaicGetAlbumLinkCount(node) >= 2 && node.querySelector("span.catalog"),
+    );
     if (fallback) {
       return fallback;
     }
@@ -168,67 +163,114 @@
     return null;
   };
 
+  /** Normalize whitespace in a label. */
+  const mosaicNormalizeText = (value) =>
+    (value || "").replace(/\s+/g, " ").trim();
+
+  /** Determine if text looks like an English month date. */
+  const mosaicLooksLikeDate = (text) =>
+    /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}/i.test(
+      text,
+    );
+
+  /** Extract date and event data for an album entry. */
+  const mosaicExtractDateEvent = (link, listRoot) => {
+    const result = {
+      dateText: "",
+      dateUrl: "",
+      eventText: "",
+      eventUrl: "",
+    };
+
+    const infobit = link.closest(".album_infobit_small");
+    if (infobit) {
+      const eventLink = infobit.querySelector("a.link_event");
+      if (eventLink) {
+        result.eventText = mosaicNormalizeText(eventLink.textContent);
+        result.eventUrl = eventLink.href || "";
+      }
+
+      const timeSpan = infobit.querySelector("span.time");
+      if (timeSpan) {
+        result.dateText = mosaicNormalizeText(timeSpan.textContent);
+        const dateAnchor = timeSpan.querySelector("a");
+        result.dateUrl = dateAnchor?.href || "";
+      }
+
+      if (!result.dateText) {
+        const detailItems = Array.from(
+          infobit.querySelectorAll(".album_infobit_detail li"),
+        );
+        const dateItem = detailItems.find((li) =>
+          mosaicLooksLikeDate(li.textContent || ""),
+        );
+        if (dateItem) {
+          result.dateText = mosaicNormalizeText(dateItem.textContent);
+        }
+      }
+
+      return result;
+    }
+
+    const row = link.closest("tr");
+    if (row && (!listRoot || listRoot.contains(row))) {
+      const eventLink = row.querySelector("a.link_event");
+      if (eventLink) {
+        result.eventText = mosaicNormalizeText(eventLink.textContent);
+        result.eventUrl = eventLink.href || "";
+      }
+
+      const timeSpan = row.querySelector("span.time");
+      if (timeSpan) {
+        result.dateText = mosaicNormalizeText(timeSpan.textContent);
+        const dateAnchor = timeSpan.querySelector("a");
+        result.dateUrl = dateAnchor?.href || "";
+      }
+    }
+
+    return result;
+  };
+
   /** Inject mosaic styles once. */
   const mosaicApplyStyles = () =>
     GM_addStyle(`
 .vgmdb-mosaic-controls {
-	margin: 6px 0 10px;
-	display: flex;
-	gap: 8px;
-	align-items: center;
+  margin: 6px 0 10px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 .vgmdb-mosaic-grid {
-	display: none;
-	grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-	gap: 12px;
-	padding: 4px 0 12px;
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 10px;
+  padding: 4px 0 12px;
+  align-items: start;
 }
 .vgmdb-mosaic-item {
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 6px;
-	background: #2F364F;
-	border: 1px solid #1B273D;
-	border-radius: 6px;
-	padding: 8px 6px;
-	text-decoration: none;
-	text-align: center;
+  width: 100%;
+  background-color: #2F364F;
 }
-.vgmdb-mosaic-thumb {
-	background-color: #001122;
-	background-repeat: no-repeat;
-	background-position: center center;
-	border: solid 1px #40557E;
-	height: 60px;
-	width: 60px;
+.vgmdb-mosaic-thumb-inner {
+  background-color: #001122;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+  height: 60px;
+  width: 60px;
 }
-.vgmdb-mosaic-thumb.vgmdb-mosaic-missing {
-	background-image: none;
-}
-.vgmdb-mosaic-meta {
-	display: flex;
-	flex-direction: column;
-	gap: 2px;
-	align-items: center;
-}
-.vgmdb-mosaic-title {
-	display: block;
-	font-size: 9pt;
-	line-height: 1.2;
-}
-.vgmdb-mosaic-catalog {
-	display: block;
-	font-size: 8pt;
+.vgmdb-mosaic-thumb-inner.vgmdb-mosaic-missing {
+  background-image: none;
 }
 .vgmdb-mosaic-status {
-	display: block;
-	font-size: 7pt;
-	color: #95a3c3;
-	text-transform: uppercase;
-	letter-spacing: 0.2px;
+  font-size: 7pt;
+  color: #95a3c3;
 }
-	`);
+.vgmdb-mosaic-date,
+.vgmdb-mosaic-date a {
+  color: #788990;
+}
+    `);
 
   /** Show or hide all mosaic containers. */
   const mosaicUpdateContainerVisibility = (show) => {
@@ -348,8 +390,8 @@
   const mosaicDelay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
   /** Fetch raw album HTML via GM_xmlhttpRequest. */
-  const mosaicRequestAlbumHtml = (albumUrl) => {
-    return new Promise((resolve) => {
+  const mosaicRequestAlbumHtml = (albumUrl) =>
+    new Promise((resolve) => {
       GM_xmlhttpRequest({
         method: "GET",
         url: albumUrl,
@@ -357,7 +399,6 @@
         onerror: () => resolve(""),
       });
     });
-  };
 
   /** Fetch and extract the cover URL with retries. */
   const mosaicFetchCoverUrl = async (albumUrl, mosaicConfig) => {
@@ -496,12 +537,18 @@
     const catalogText = catalogSpan ? catalogSpan.textContent.trim() : "";
     const catalogClass = catalogSpan ? catalogSpan.className : "";
     const titleClass = link.className || "";
+    const { dateText, dateUrl, eventText, eventUrl } =
+      mosaicExtractDateEvent(link, listRoot);
     return {
       url: albumUrl,
       title,
       titleClass,
       catalogText,
       catalogClass,
+      dateText,
+      dateUrl,
+      eventText,
+      eventUrl,
       sourceTitleNode: inlineTitle || link,
       listThumbUrl: mosaicGetThumbUrlFromList(link),
     };
@@ -557,39 +604,102 @@
 
     const items = [];
     for (const album of uniqueAlbums.values()) {
-      const item = document.createElement("a");
-      item.className = "vgmdb-mosaic-item";
-      item.href = album.url;
-      item.title = album.title;
+      const item = document.createElement("div");
+      item.className = "album_infobit_small smallfont label vgmdb-mosaic-item";
+
+      const thumbWrap = document.createElement("div");
+      thumbWrap.className = "album_infobit_thumb vgmdb-mosaic-thumb";
 
       const thumb = document.createElement("div");
-      thumb.className = "vgmdb-mosaic-thumb";
+      thumb.className = "vgmdb-mosaic-thumb-inner";
 
-      const meta = document.createElement("div");
-      meta.className = "vgmdb-mosaic-meta";
+      const thumbLink = document.createElement("a");
+      thumbLink.href = album.url;
+      thumbLink.title = album.title;
 
-      const label = document.createElement("span");
-      label.className = album.titleClass
-        ? `${album.titleClass} vgmdb-mosaic-title`
-        : "vgmdb-mosaic-title";
+      thumb.appendChild(thumbLink);
+      thumbWrap.appendChild(thumb);
+
+      const details = document.createElement("ul");
+      details.className = "album_infobit_detail";
+
+      const titleRow = document.createElement("li");
+      const label = document.createElement("a");
+      const titleClasses = new Set(
+        (album.titleClass || "").split(/\s+/).filter(Boolean),
+      );
+      titleClasses.add("albumtitle");
+      titleClasses.add("smallfont");
+      titleClasses.add("vgmdb-mosaic-title");
+      label.className = Array.from(titleClasses).join(" ");
+      label.href = album.url;
+      label.title = album.title;
       label.textContent = album.title;
-      meta.appendChild(label);
+      titleRow.appendChild(label);
 
       if (album.catalogText && album.catalogText !== "N/A") {
         const catalog = document.createElement("span");
-        catalog.className = album.catalogClass
-          ? `${album.catalogClass} vgmdb-mosaic-catalog`
-          : "vgmdb-mosaic-catalog";
+        const catalogClasses = new Set(
+          (album.catalogClass || "").split(/\s+/).filter(Boolean),
+        );
+        catalogClasses.add("catalog");
+        catalogClasses.add("smallfont");
+        catalogClasses.add("vgmdb-mosaic-catalog");
+        catalog.className = Array.from(catalogClasses).join(" ");
         catalog.textContent = album.catalogText;
-        meta.appendChild(catalog);
+        titleRow.appendChild(document.createTextNode(" "));
+        titleRow.appendChild(catalog);
       }
 
-      const status = document.createElement("span");
-      status.className = "vgmdb-mosaic-status";
-      meta.appendChild(status);
+      details.appendChild(titleRow);
 
-      item.appendChild(thumb);
-      item.appendChild(meta);
+      if (album.eventText) {
+        const eventLine = document.createElement("li");
+        const eventSpan = document.createElement("span");
+        eventSpan.className = "label";
+
+        const eventIcon = document.createElement("img");
+        eventIcon.src = "/db/icons/event_first_release.png";
+        eventIcon.alt = "";
+        eventSpan.appendChild(eventIcon);
+        eventSpan.appendChild(document.createTextNode(" "));
+
+        if (album.eventUrl) {
+          const eventLink = document.createElement("a");
+          eventLink.href = album.eventUrl;
+          eventLink.rel = "nofollow";
+          eventLink.textContent = album.eventText;
+          eventSpan.appendChild(eventLink);
+        } else {
+          eventSpan.appendChild(document.createTextNode(album.eventText));
+        }
+
+        eventLine.appendChild(eventSpan);
+        details.appendChild(eventLine);
+      }
+
+      if (album.dateText) {
+        const dateLine = document.createElement("li");
+        const dateSpan = document.createElement("span");
+        dateSpan.className = "time vgmdb-mosaic-date";
+        if (album.dateUrl) {
+          const dateLink = document.createElement("a");
+          dateLink.href = album.dateUrl;
+          dateLink.textContent = album.dateText;
+          dateSpan.appendChild(dateLink);
+        } else {
+          dateSpan.textContent = album.dateText;
+        }
+        dateLine.appendChild(dateSpan);
+        details.appendChild(dateLine);
+      }
+
+      const status = document.createElement("li");
+      status.className = "vgmdb-mosaic-status";
+      details.appendChild(status);
+
+      item.appendChild(thumbWrap);
+      item.appendChild(details);
       mosaicGrid.appendChild(item);
 
       if (album.listThumbUrl) {
@@ -691,10 +801,7 @@
 
     mosaicManager.mount();
     mosaicConfig.showContainer = Boolean(
-      mosaicManager.getSetting(
-        "mosaicShowContainer",
-        mosaicConfig.showContainer,
-      ),
+      mosaicManager.getSetting("mosaicShowContainer", mosaicConfig.showContainer),
     );
 
     return mosaicConfig;

@@ -138,6 +138,19 @@ When this script is enabled, a new button will be added to album lists (should w
 A setting to toggle the mosaic view container (button / mosaic) will be added to the VGMdb preferences panel.
 <img width="2612" height="1420" alt="image" src="https://github.com/user-attachments/assets/76d7170d-92b0-43e0-a407-977426ea59aa" />
 
+## [VGMdb language variants](VGMdb%20language%20variants.user.js)
+
+Display language variants (titles, names, etc) on VGMdb.
+
+### Features
+
+When this script is enabled, language variants will be displayed for all applicable fields (titles, names, etc). A new setting will be added to the VGMdb preferences panel to toggle the visibility of these variants.
+
+### Settings
+The user may define the color of the language variants by setting the `showLanguageVariantsColor` variable at the top of the script. The user may also define fields to exclude from showing language variants by adding CSS selectors to the `showLanguageVariantsExcludedSelectors` array.
+
+A setting to toggle the visibility of language variants will be added to the VGMdb preferences panel.
+
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
 Example of how to use the VGMdb Custom Settings library to insert custom buttons in the VGMdb settings component.
