@@ -151,6 +151,9 @@ The user may define the color of the language variants by setting the `showLangu
 
 A setting to toggle the visibility of language variants will be added to the VGMdb preferences panel.
 
+<img width="1755" height="560" alt="image" src="https://github.com/user-attachments/assets/1a4a0dae-baf0-4258-8e3b-23759bad5517" />
+
+
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
 Example of how to use the VGMdb Custom Settings library to insert custom buttons in the VGMdb settings component.
