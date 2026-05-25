@@ -5,9 +5,9 @@
 // @require     https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
-// @version     0.4
+// @version     1.0
 // @author      kahpaibe
-// @description Add a mosaic view for all album lists on VGMdb.
+// @description Add a mosaic view for album lists on VGMdb.
 // @run-at      document-idle
 // ==/UserScript==
 
@@ -26,6 +26,12 @@
   const mosaicSettingsStorageKey = "vgmdbMosaicAlbumList";
   const mosaicSettingsContainerId = "customSettingsContainerMosaicAlbumList";
   const mosaicContainers = new Set();
+  const mosaicDefaultVisibility = {
+    title: true,
+    catalog: true,
+    date: true,
+    event: true,
+  };
 
   /** Find the closest ancestor that matches a predicate. */
   const mosaicFindAncestor = (start, predicate, stopAt = document.body) => {
@@ -251,9 +257,26 @@
   padding: 4px 0 12px;
   align-items: start;
 }
+.vgmdb-mosaic-container.vgmdb-mosaic-covers-only .vgmdb-mosaic-grid {
+  grid-template-columns: repeat(auto-fill, minmax(78px, 78px));
+  gap: 10px;
+}
 .vgmdb-mosaic-item {
   width: 100%;
   background-color: #2F364F;
+}
+.vgmdb-mosaic-container.vgmdb-mosaic-covers-only .vgmdb-mosaic-item {
+  width: 78px;
+  box-sizing: border-box;
+}
+.vgmdb-mosaic-container.vgmdb-mosaic-covers-only .album_infobit_detail {
+  display: none;
+}
+.vgmdb-mosaic-container.vgmdb-mosaic-covers-only .album_infobit_thumb,
+.vgmdb-mosaic-container.vgmdb-mosaic-covers-only .vgmdb-mosaic-thumb {
+  width: 60px;
+  margin-left: auto;
+  margin-right: auto;
 }
 .vgmdb-mosaic-thumb-inner {
   background-color: #001122;
@@ -292,6 +315,36 @@
   const mosaicUpdateContainerVisibility = (show) => {
     for (const container of mosaicContainers) {
       container.style.display = show ? "" : "none";
+    }
+  };
+
+  /** Determine whether only covers should be shown. */
+  const mosaicIsCoversOnly = (mosaicConfig) =>
+    !mosaicConfig.showTitle &&
+    !mosaicConfig.showCatalog &&
+    !mosaicConfig.showDate &&
+    !mosaicConfig.showEvent;
+
+  /** Show or hide supported fields on all mosaic items. */
+  const mosaicUpdateItemVisibility = (mosaicConfig) => {
+    const coversOnly = mosaicIsCoversOnly(mosaicConfig);
+    for (const container of mosaicContainers) {
+      container.classList.toggle("vgmdb-mosaic-covers-only", coversOnly);
+      const items = container.mosaicItems || [];
+      for (const item of items) {
+        if (item.title) {
+          item.title.hidden = !mosaicConfig.showTitle;
+        }
+        if (item.catalog) {
+          item.catalog.hidden = !mosaicConfig.showCatalog;
+        }
+        if (item.dateSpan) {
+          item.dateSpan.hidden = !mosaicConfig.showDate || !item.dateSpan.textContent.trim();
+        }
+        if (item.eventWrapper) {
+          item.eventWrapper.hidden = !mosaicConfig.showEvent || !item.eventWrapper.textContent.trim();
+        }
+      }
     }
   };
 
@@ -490,21 +543,6 @@
     };
   };
 
-  /** Apply the album title color from the source list. */
-  const mosaicApplyTitleColor = (item) => {
-    if (!item.label || item.label.dataset.colorApplied === "1") {
-      return;
-    }
-    const sourceNode = item.sourceTitleNode;
-    if (sourceNode && sourceNode.isConnected) {
-      const color = getComputedStyle(sourceNode).color;
-      if (color) {
-        item.label.style.color = color;
-      }
-    }
-    item.label.dataset.colorApplied = "1";
-  };
-
   /** Ensure a mosaic item has a cover image (or is marked missing). */
   const mosaicEnsureCover = async (item, mosaicConfig) => {
     if (
@@ -517,13 +555,22 @@
 
     const coverResult = await mosaicFetchCoverUrl(item.url, mosaicConfig);
     delete item.thumb.dataset.loading;
-    mosaicApplyTitleColor(item);
 
     if (coverResult.releaseDateText) {
-      mosaicUpdateDate(item, coverResult.releaseDateText, coverResult.releaseDateUrl);
+      mosaicUpdateDate(
+        item,
+        coverResult.releaseDateText,
+        coverResult.releaseDateUrl,
+        mosaicConfig,
+      );
     }
     if (coverResult.eventText) {
-      mosaicUpdateEvent(item, coverResult.eventText, coverResult.eventUrl);
+      mosaicUpdateEvent(
+        item,
+        coverResult.eventText,
+        coverResult.eventUrl,
+        mosaicConfig,
+      );
     }
 
     if (coverResult.coverUrl) {
@@ -631,17 +678,17 @@
   };
 
   /** Update the visible date line for a mosaic item. */
-  const mosaicUpdateDate = (item, dateText, dateUrl) => {
+  const mosaicUpdateDate = (item, dateText, dateUrl, mosaicConfig) => {
     if (!item.dateSpan || !dateText) {
       return;
     }
 
     item.dateSpan.textContent = dateText;
-    item.dateSpan.hidden = false;
+    item.dateSpan.hidden = !mosaicConfig.showDate;
   };
 
   /** Update the inline event for a mosaic item. */
-  const mosaicUpdateEvent = (item, eventText, eventUrl) => {
+  const mosaicUpdateEvent = (item, eventText, eventUrl, mosaicConfig) => {
     if (!item.eventWrapper || !item.eventLabel) {
       return;
     }
@@ -652,7 +699,7 @@
     }
 
     // ensure wrapper visible
-    item.eventWrapper.hidden = false;
+    item.eventWrapper.hidden = !mosaicConfig.showEvent;
 
     // find existing anchor wrapper if any
     const existingAnchor = item.eventWrapper.querySelector("a.link_event");
@@ -685,6 +732,8 @@
     item.eventLabel.textContent = "";
     item.eventLabel.appendChild(img);
     item.eventLabel.appendChild(document.createTextNode(" " + eventText));
+
+    item.eventWrapper.hidden = !mosaicConfig.showEvent;
   };
 
   /** Build and insert mosaic UI for a list root. */
@@ -782,6 +831,7 @@
         catalog.textContent = album.catalogText;
         titleRow.appendChild(document.createTextNode(" "));
         titleRow.appendChild(catalog);
+        catalog.hidden = false;
       }
 
       // Title + catalog (and inline date will follow if present)
@@ -846,7 +896,8 @@
         thumb,
         url: album.url,
         status,
-        label,
+        title: label,
+        catalog: titleRow.querySelector(".vgmdb-mosaic-catalog"),
         dateLine: details.querySelector(".vgmdb-mosaic-date")?.parentElement,
         dateSpan: titleRow.querySelector(".vgmdb-mosaic-date"),
         sourceTitleNode: album.sourceTitleNode,
@@ -855,12 +906,14 @@
         eventIcon,
       };
       items.push(itemData);
-      mosaicApplyTitleColor(itemData);
 
       if (album.dateText) {
-        mosaicUpdateDate(itemData, album.dateText, album.dateUrl);
+        mosaicUpdateDate(itemData, album.dateText, album.dateUrl, mosaicConfig);
       }
     }
+
+    mosaicContainer.mosaicItems = items;
+    mosaicUpdateItemVisibility(mosaicConfig);
 
     toggleButton.addEventListener("click", () => {
       console.log("mosaic view requested");
@@ -915,6 +968,10 @@
       maxCoverFetchRetries: mosaicMaxCoverFetchRetries,
       retryDelayMs: mosaicRetryDelayMs,
       showContainer: mosaicDefaultShowContainer,
+      showTitle: mosaicDefaultVisibility.title,
+      showCatalog: mosaicDefaultVisibility.catalog,
+      showDate: mosaicDefaultVisibility.date,
+      showEvent: mosaicDefaultVisibility.event,
     };
 
     if (
@@ -939,6 +996,46 @@
               mosaicUpdateContainerVisibility(mosaicConfig.showContainer);
             },
           },
+          {
+            type: "checkbox",
+            id: "mosaicShowTitle",
+            label: "Show title",
+            default: mosaicDefaultVisibility.title,
+            onChange: (value) => {
+              mosaicConfig.showTitle = Boolean(value);
+              mosaicUpdateItemVisibility(mosaicConfig);
+            },
+          },
+          {
+            type: "checkbox",
+            id: "mosaicShowCatalog",
+            label: "Show catalog number",
+            default: mosaicDefaultVisibility.catalog,
+            onChange: (value) => {
+              mosaicConfig.showCatalog = Boolean(value);
+              mosaicUpdateItemVisibility(mosaicConfig);
+            },
+          },
+          {
+            type: "checkbox",
+            id: "mosaicShowDate",
+            label: "Show date",
+            default: mosaicDefaultVisibility.date,
+            onChange: (value) => {
+              mosaicConfig.showDate = Boolean(value);
+              mosaicUpdateItemVisibility(mosaicConfig);
+            },
+          },
+          {
+            type: "checkbox",
+            id: "mosaicShowEvent",
+            label: "Show event",
+            default: mosaicDefaultVisibility.event,
+            onChange: (value) => {
+              mosaicConfig.showEvent = Boolean(value);
+              mosaicUpdateItemVisibility(mosaicConfig);
+            },
+          },
         ],
       },
     });
@@ -946,6 +1043,18 @@
     mosaicManager.mount();
     mosaicConfig.showContainer = Boolean(
       mosaicManager.getSetting("mosaicShowContainer", mosaicConfig.showContainer),
+    );
+    mosaicConfig.showTitle = Boolean(
+      mosaicManager.getSetting("mosaicShowTitle", mosaicConfig.showTitle),
+    );
+    mosaicConfig.showCatalog = Boolean(
+      mosaicManager.getSetting("mosaicShowCatalog", mosaicConfig.showCatalog),
+    );
+    mosaicConfig.showDate = Boolean(
+      mosaicManager.getSetting("mosaicShowDate", mosaicConfig.showDate),
+    );
+    mosaicConfig.showEvent = Boolean(
+      mosaicManager.getSetting("mosaicShowEvent", mosaicConfig.showEvent),
     );
 
     return mosaicConfig;
