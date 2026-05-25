@@ -127,7 +127,7 @@ New settings will be inserted in the VGMdb preferences panel.
 
 ## [VGMdb mosaic album list](VGMdb%20mosaic%20album%20list.user.js)
 
-Add a button that will show a mosaic view with album thumbnails for album lists.
+Add a button that will show a mosaic view with album thumbnails for album lists. Disclaimer: This script fetches each album page to build the mosaic and may generate substantial network traffic. Please use this feature sparingly to avoid unnecessary site traffic.
 
 ### Features
 
@@ -135,8 +135,11 @@ When this script is enabled, a new button will be added to album lists (should w
 
 ### Settings
 
-A setting to toggle the mosaic view container (button / mosaic) will be added to the VGMdb preferences panel.
-<img width="2612" height="1420" alt="image" src="https://github.com/user-attachments/assets/76d7170d-92b0-43e0-a407-977426ea59aa" />
+The user may configure various parameters such as `mosaicMaxConcurrentRequests` at the top of the script.
+
+A setting to toggle the mosaic view container (button / mosaic) will be added to the VGMdb preferences panel. There will also be settings to toggle displayed info fields. If all fields are disabled, the compact mosaic view will be shown (thumbnails only).
+<img width="2609" height="1283" alt="image" src="https://github.com/user-attachments/assets/11fdc63b-3375-4b62-bc6b-6a6255e4a7ab" />
+
 
 ## [VGMdb language variants](VGMdb%20language%20variants.user.js)
 
