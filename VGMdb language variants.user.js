@@ -24,6 +24,8 @@
     const showLanguageVariantsExcludedSelectors = [
         'h1 .albumtitle',          // Excludes the main album title at the top
         'h1 + div .albumtitle',    // Excludes the secondary album titles (the div right below the h1)
+        'span[style*="font-size: 1.5em"] .albumtitle', // Excludes event page titles
+        'div[style*="padding: 6px 10px 10px 10px"] .albumtitle', // Excludes event page header titles
     ];
 
     /*********************************************

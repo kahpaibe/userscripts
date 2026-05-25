@@ -167,6 +167,10 @@
   const mosaicNormalizeText = (value) =>
     (value || "").replace(/\s+/g, " ").trim();
 
+  /** Normalize release-date text to the plain date only. */
+  const mosaicNormalizeReleaseDateText = (value) =>
+    mosaicNormalizeText(value).replace(/^View albums released on\s+/i, "");
+
   /** Determine if text looks like an English month date. */
   const mosaicLooksLikeDate = (text) =>
     /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d{1,2},\s+\d{4}/i.test(
@@ -270,6 +274,18 @@
 .vgmdb-mosaic-date a {
   color: #788990;
 }
+.vgmdb-mosaic-date {
+  /* spacing handled by a single text node to avoid double gaps */
+}
+.vgmdb-mosaic-event {
+  vertical-align: middle;
+}
+.vgmdb-mosaic-event img {
+  vertical-align: middle;
+  height: 10px;
+  width: auto;
+  margin-right: 3px;
+}
     `);
 
   /** Show or hide all mosaic containers. */
@@ -358,6 +374,45 @@
     return null;
   };
 
+  /** Parse the album release date from the album info table. */
+  const mosaicExtractReleaseDate = (html) => {
+    if (!html) {
+      return null;
+    }
+
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const rows = Array.from(doc.querySelectorAll("#album_infobit_large tr"));
+    const row = rows.find((candidate) => {
+      const label = candidate.querySelector("td span.label b");
+      return mosaicNormalizeText(label?.textContent) === "Release Date";
+    });
+    if (!row) {
+      return null;
+    }
+
+    const valueCell = row.querySelectorAll("td")[1];
+    if (!valueCell) {
+      return null;
+    }
+
+    const dateAnchor = valueCell.querySelector("a");
+    const dateText = mosaicNormalizeReleaseDateText(
+      dateAnchor?.getAttribute("data-vcs-original-text") ||
+        dateAnchor?.title ||
+        dateAnchor?.textContent ||
+        valueCell.textContent,
+    );
+    const eventLink = valueCell.querySelector("a.link_event");
+    const eventText = eventLink ? mosaicNormalizeText(eventLink.textContent) : "";
+    const eventUrl = eventLink ? eventLink.href || "" : "";
+    return {
+      dateText,
+      dateUrl: dateAnchor?.href || "",
+      eventText,
+      eventUrl,
+    };
+  };
+
   /** Reuse list thumbnails when available. */
   const mosaicGetThumbUrlFromList = (link) => {
     const infobit = link.closest(".album_infobit_small");
@@ -403,22 +458,36 @@
   /** Fetch and extract the cover URL with retries. */
   const mosaicFetchCoverUrl = async (albumUrl, mosaicConfig) => {
     const normalizedUrl = mosaicNormalizeAlbumUrl(albumUrl);
+    let releaseDate = null;
     for (
       let attempt = 0;
       attempt <= mosaicConfig.maxCoverFetchRetries;
       attempt += 1
     ) {
       const html = await mosaicRequestAlbumHtml(normalizedUrl);
+      releaseDate = html ? mosaicExtractReleaseDate(html) : releaseDate;
       const coverUrl = html ? mosaicExtractCoverUrl(html) : null;
       if (coverUrl) {
         console.log("fetched url (thumbail url)", coverUrl);
-        return coverUrl;
+        return {
+          coverUrl,
+          releaseDateText: releaseDate?.dateText || "",
+          releaseDateUrl: releaseDate?.dateUrl || "",
+          eventText: releaseDate?.eventText || "",
+          eventUrl: releaseDate?.eventUrl || "",
+        };
       }
       if (attempt < mosaicConfig.maxCoverFetchRetries) {
         await mosaicDelay(mosaicConfig.retryDelayMs);
       }
     }
-    return null;
+    return {
+      coverUrl: null,
+      releaseDateText: releaseDate?.dateText || "",
+      releaseDateUrl: releaseDate?.dateUrl || "",
+      eventText: releaseDate?.eventText || "",
+      eventUrl: releaseDate?.eventUrl || "",
+    };
   };
 
   /** Apply the album title color from the source list. */
@@ -446,12 +515,19 @@
     }
     item.thumb.dataset.loading = "1";
 
-    const coverUrl = await mosaicFetchCoverUrl(item.url, mosaicConfig);
+    const coverResult = await mosaicFetchCoverUrl(item.url, mosaicConfig);
     delete item.thumb.dataset.loading;
     mosaicApplyTitleColor(item);
 
-    if (coverUrl) {
-      item.thumb.style.backgroundImage = `url("${coverUrl}")`;
+    if (coverResult.releaseDateText) {
+      mosaicUpdateDate(item, coverResult.releaseDateText, coverResult.releaseDateUrl);
+    }
+    if (coverResult.eventText) {
+      mosaicUpdateEvent(item, coverResult.eventText, coverResult.eventUrl);
+    }
+
+    if (coverResult.coverUrl) {
+      item.thumb.style.backgroundImage = `url("${coverResult.coverUrl}")`;
       item.thumb.dataset.loaded = "1";
       item.status.textContent = "";
       return;
@@ -554,6 +630,63 @@
     };
   };
 
+  /** Update the visible date line for a mosaic item. */
+  const mosaicUpdateDate = (item, dateText, dateUrl) => {
+    if (!item.dateSpan || !dateText) {
+      return;
+    }
+
+    item.dateSpan.textContent = dateText;
+    item.dateSpan.hidden = false;
+  };
+
+  /** Update the inline event for a mosaic item. */
+  const mosaicUpdateEvent = (item, eventText, eventUrl) => {
+    if (!item.eventWrapper || !item.eventLabel) {
+      return;
+    }
+
+    if (!eventText) {
+      item.eventWrapper.hidden = true;
+      return;
+    }
+
+    // ensure wrapper visible
+    item.eventWrapper.hidden = false;
+
+    // find existing anchor wrapper if any
+    const existingAnchor = item.eventWrapper.querySelector("a.link_event");
+    let targetAnchor = existingAnchor;
+    if (eventUrl) {
+      if (!existingAnchor) {
+        // create anchor and move label into it
+        targetAnchor = document.createElement("a");
+        targetAnchor.className = "link_event";
+        targetAnchor.rel = "nofollow";
+        item.eventWrapper.appendChild(targetAnchor);
+        targetAnchor.appendChild(item.eventLabel);
+      } else {
+        // ensure label is inside anchor
+        if (existingAnchor !== item.eventLabel.parentElement) {
+          existingAnchor.appendChild(item.eventLabel);
+        }
+      }
+      targetAnchor.href = eventUrl;
+    } else if (existingAnchor) {
+      // unwrap label from anchor
+      item.eventWrapper.appendChild(item.eventLabel);
+      existingAnchor.remove();
+    }
+
+    // update label text (keep icon)
+    // remove any text nodes after the icon
+    const img = item.eventIcon;
+    // clear label then re-append img + text
+    item.eventLabel.textContent = "";
+    item.eventLabel.appendChild(img);
+    item.eventLabel.appendChild(document.createTextNode(" " + eventText));
+  };
+
   /** Build and insert mosaic UI for a list root. */
   const mosaicBuildMosaicForList = (listRoot, listLinks, mosaicConfig) => {
     if (
@@ -651,48 +784,50 @@
         titleRow.appendChild(catalog);
       }
 
+      // Title + catalog (and inline date will follow if present)
       details.appendChild(titleRow);
 
-      if (album.eventText) {
-        const eventLine = document.createElement("li");
-        const eventSpan = document.createElement("span");
-        eventSpan.className = "label";
+      // event will be rendered inline after date (see below)
+      // Inline date span appended to the title row so it follows catalog
+      const inlineDateSpan = document.createElement("span");
+      inlineDateSpan.className = "time vgmdb-mosaic-date";
+      inlineDateSpan.hidden = !album.dateText;
+      if (album.dateText) inlineDateSpan.textContent = album.dateText;
+      // insert a single separating space if the title row doesn't already end with whitespace
+      const last = titleRow.lastChild;
+      if (!last || last.nodeType !== Node.TEXT_NODE || !/\s$/.test(last.textContent)) {
+        titleRow.appendChild(document.createTextNode(" "));
+      }
+      titleRow.appendChild(inlineDateSpan);
 
-        const eventIcon = document.createElement("img");
-        eventIcon.src = "/db/icons/event_first_release.png";
-        eventIcon.alt = "";
-        eventSpan.appendChild(eventIcon);
-        eventSpan.appendChild(document.createTextNode(" "));
+      // If there's an event, add it inline after the date using an anchor.link_event
+      // create an inline event placeholder (may be filled from list or album page)
+      const eventWrapper = document.createElement("span");
+      eventWrapper.className = "vgmdb-mosaic-event";
+      eventWrapper.hidden = !album.eventText;
 
-        if (album.eventUrl) {
-          const eventLink = document.createElement("a");
-          eventLink.href = album.eventUrl;
-          eventLink.rel = "nofollow";
-          eventLink.textContent = album.eventText;
-          eventSpan.appendChild(eventLink);
-        } else {
-          eventSpan.appendChild(document.createTextNode(album.eventText));
-        }
+      const innerLabel = document.createElement("span");
+      innerLabel.className = "label";
 
-        eventLine.appendChild(eventSpan);
-        details.appendChild(eventLine);
+      const eventIcon = document.createElement("img");
+      eventIcon.src = "/db/icons/event_first_release.png";
+      eventIcon.alt = "";
+      innerLabel.appendChild(eventIcon);
+      if (album.eventText) innerLabel.appendChild(document.createTextNode(" " + album.eventText));
+
+      // if the list provided a URL, wrap the label in an anchor
+      if (album.eventUrl) {
+        const a = document.createElement("a");
+        a.className = "link_event";
+        a.href = album.eventUrl;
+        a.rel = "nofollow";
+        a.appendChild(innerLabel);
+        eventWrapper.appendChild(a);
+      } else {
+        eventWrapper.appendChild(innerLabel);
       }
 
-      if (album.dateText) {
-        const dateLine = document.createElement("li");
-        const dateSpan = document.createElement("span");
-        dateSpan.className = "time vgmdb-mosaic-date";
-        if (album.dateUrl) {
-          const dateLink = document.createElement("a");
-          dateLink.href = album.dateUrl;
-          dateLink.textContent = album.dateText;
-          dateSpan.appendChild(dateLink);
-        } else {
-          dateSpan.textContent = album.dateText;
-        }
-        dateLine.appendChild(dateSpan);
-        details.appendChild(dateLine);
-      }
+      titleRow.appendChild(eventWrapper);
 
       const status = document.createElement("li");
       status.className = "vgmdb-mosaic-status";
@@ -712,10 +847,19 @@
         url: album.url,
         status,
         label,
+        dateLine: details.querySelector(".vgmdb-mosaic-date")?.parentElement,
+        dateSpan: titleRow.querySelector(".vgmdb-mosaic-date"),
         sourceTitleNode: album.sourceTitleNode,
+        eventWrapper,
+        eventLabel: innerLabel,
+        eventIcon,
       };
       items.push(itemData);
       mosaicApplyTitleColor(itemData);
+
+      if (album.dateText) {
+        mosaicUpdateDate(itemData, album.dateText, album.dateUrl);
+      }
     }
 
     toggleButton.addEventListener("click", () => {
