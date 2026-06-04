@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VGMdb album page tweaks
 // @namespace    https://vgmdb.net/
-// @version      1.1
+// @version      1.2
 // @description  Tweaks for VGMdb album pages: custom date format, insert buttons to copy metadata, title and tracklists to clipboard.
 // @author       kahpaibe
 // @match        https://vgmdb.net/album/*
@@ -16,9 +16,58 @@
   /*********************************************
    * User configuration
    ********************************************/
-  function formatDateOverride(dateObj) {
-    // Format date as YYYY.MM.DD with leading zeros for month and day
-    return `${dateObj.getFullYear()}.${("0" + (dateObj.getMonth() + 1)).slice(-2)}.${("0" + dateObj.getDate()).slice(-2)}`;
+  function formatDateOverride({ year, month, day }) {
+    const parts = [year, month];
+    if (day) {
+      parts.push(day);
+    }
+    return parts.join(".");
+  }
+
+  function parseDateOverrideText(text) {
+    const trimmedText = text.trim();
+    const monthMap = { // Month to number map
+      Jan: "01",
+      Feb: "02",
+      Mar: "03",
+      Apr: "04",
+      May: "05",
+      Jun: "06",
+      Jul: "07",
+      Aug: "08",
+      Sep: "09",
+      Oct: "10",
+      Nov: "11",
+      Dec: "12",
+    };
+    
+    // Of the form "Feb 13, 2023"
+    const fullDateMatch = trimmedText.match(
+      /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{2}), (\d{4})$/,
+    );
+    if (fullDateMatch) {
+      const [, monthName, day, year] = fullDateMatch;
+      return formatDateOverride({
+        year,
+        month: monthMap[monthName],
+        day,
+      });
+    }
+
+    // Of the form "Feb 2023"
+    const monthYearMatch = trimmedText.match(
+      /^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec) (\d{4})$/,
+    );
+    if (monthYearMatch) {
+      const [, monthName, year] = monthYearMatch;
+      return formatDateOverride({
+        year,
+        month: monthMap[monthName],
+      });
+    }
+
+    // Of the form "2023", do nothing
+    return null;
   }
 
   // Button text and tooltips
@@ -185,9 +234,9 @@
       }
 
       if (enabled) {
-        const dateObj = new Date(link.dataset.vcsOriginalText.trim());
-        if (!isNaN(dateObj)) {
-          link.innerText = formatDateOverride(dateObj);
+        const formattedDate = parseDateOverrideText(link.dataset.vcsOriginalText);
+        if (formattedDate) {
+          link.innerText = formattedDate;
         }
       } else {
         // revert to stored original text
