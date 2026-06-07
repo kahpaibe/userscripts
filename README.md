@@ -152,7 +152,7 @@ When this script is enabled, language variants will be displayed for all applica
 ### Settings
 The user may define the color of the language variants by setting the `showLanguageVariantsColor` variable at the top of the script. The user may also define fields to exclude from showing language variants by adding CSS selectors to the `showLanguageVariantsExcludedSelectors` array.
 
-A setting to toggle the visibility of language variants will be added to the VGMdb preferences panel.
+A setting to toggle the visibility of language variants will be added to the VGMdb preferences panel. Checkboxes dedicated to toggling specific container types will also be added, allowing users to choose which containers show language variants. If a container type has no dedicated toggle, it will follow the master switch setting.
 
 <img width="1755" height="560" alt="image" src="https://github.com/user-attachments/assets/1a4a0dae-baf0-4258-8e3b-23759bad5517" />
 
