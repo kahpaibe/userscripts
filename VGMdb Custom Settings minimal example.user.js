@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         VGMdb Custom Settings minimal example
 // @namespace    https://vgmdb.net/
-// @version      1.0
+// @version      1.1
 // @description  Minimal usage example for VGMdb Custom Settings library
 // @author       kahpaibe
 // @match        https://vgmdb.net/*
@@ -35,6 +35,7 @@
           type: "checkbox",
           id: "showConsoleLog",
           label: "Enable console log on page load",
+          tooltip: "This will show a message in the browser console whenever a page loads.",
           default: false,
           onChange: function (value) {
             console.log(
@@ -47,6 +48,7 @@
           type: "radio",
           id: "exampleRadio",
           label: "Example radio",
+          tooltip: "Choose between two mutually exclusive options.",
           options: [
             { value: "optionA", label: "Option A" },
             { value: "optionB", label: "Option B" },
@@ -60,6 +62,7 @@
           type: "tristate",
           id: "exampleTristate",
           label: "Example tristate",
+          tooltip: "A three-state control (null, on, off) often used for filtering.",
           default: "null",
           onChange: function (value) {
             console.log(

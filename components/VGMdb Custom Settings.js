@@ -1,7 +1,7 @@
 (function(global) {
     'use strict';
 
-    const VERSION = '1.0.0';
+    const VERSION = '1.0.1';
     const DEFAULT_STORAGE_KEY = 'vgmdbCustomSettings';
     const DEFAULT_CONTAINER_ID = 'customSettingsContainer';
 
@@ -42,6 +42,9 @@
     function createCheckboxInput(item, value, updateValue) {
         const container = document.createElement('div');
         container.className = 'smallfont';
+        if (item.tooltip) {
+            container.title = item.tooltip;
+        }
         container.innerHTML = '' +
             '<input type="checkbox" id="' + item.id + '" ' + (value ? 'checked' : '') + '>' +
             '<label for="' + item.id + '">' + item.label + '</label>';
@@ -57,6 +60,9 @@
     function createRadioInput(item, value, updateValue) {
         const container = document.createElement('div');
         container.className = 'smallfont';
+        if (item.tooltip) {
+            container.title = item.tooltip;
+        }
 
         item.options.forEach(function(option) {
             const radioContainer = document.createElement('div');
@@ -80,6 +86,9 @@
     function createTristateInput(item, initialState, updateValue) {
         const container = document.createElement('div');
         container.className = 'smallfont';
+        if (item.tooltip) {
+            container.title = item.tooltip;
+        }
 
         const stateMap = { off: '0', on: '2', null: '3' };
         const valueMap = { '0': 'off', '2': 'on', '3': 'null' };
