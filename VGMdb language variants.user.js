@@ -4,7 +4,7 @@
 // @match       https://vgmdb.net/*
 // @require     https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
 // @grant       GM_addStyle
-// @version     1.10
+// @version     1.11
 // @author      kahpaibe
 // @description Show language variants (for artists, roles, titles...) in VGMdb
 // @run-at      document-idle
@@ -47,6 +47,7 @@
         { id: "role", label: "table.role", selector: "table.role", type: "role", tooltip: "Tracklist credits on album pages" },
         { id: "rightcolumn", label: "Right column", selector: "#rightcolumn", type: "rightcolumn", tooltip: "Right sidebar (e.g., Products represented on Album pages)" },
         { id: "leftfloat", label: "Left float", selector: "#leftfloat", type: "leftfloat", tooltip: "Left sidebar info (e.g., Aliases, Organizations on Artist pages)" },
+        { id: "draft_artists", label: "Draft artists", selector: "form[action*=\"artists-assign.php\"] table.role", type: "draft-artists", tooltip: "Hidden language variants of draft artists on draft pages" },
     ];
 
     const masterSwitchTooltip = "Master switch to enable/disable language variants display. Containers with no dedicated toggle will follow this setting only.";
@@ -299,6 +300,65 @@
         });
     }
 
+    function showLanguageVariantsDraftArtistsSetup() {
+        // Find all artistname hidden inputs
+        const artistNameInputs = document.querySelectorAll('input[type="hidden"][name^="artistname["]');
+
+        artistNameInputs.forEach(input => {
+            const parent = input.parentElement;
+            if (!parent) return;
+
+            // Extract index from name, e.g. artistname[1890122] -> 1890122
+            const match = input.name.match(/^artistname\[(\d+)\]$/);
+            if (!match) return;
+            const index = match[1];
+
+            // Find corresponding artistnamekanji input
+            const kanjiInput = parent.querySelector(`input[type="hidden"][name="artistnamekanji[${index}]"]`);
+            if (!kanjiInput) return;
+
+            const nameVal = input.value.trim();
+            const kanjiVal = kanjiInput.value.trim();
+
+            // We only care if there is a variant and it's different from the default name
+            if (kanjiVal === '' || kanjiVal.toLowerCase() === nameVal.toLowerCase()) {
+                return;
+            }
+
+            // Let's find the link or text that displays the artist name to append the variant to
+            let displayNode = parent.querySelector('a');
+            if (!displayNode) {
+                // Look for text nodes containing nameVal
+                const textNodes = Array.from(parent.childNodes).filter(node => node.nodeType === Node.TEXT_NODE);
+                displayNode = textNodes.find(node => node.textContent.includes(nameVal));
+            }
+            if (!displayNode) return;
+
+            // Check if we already inserted the variant to avoid duplicate insertions
+            if (parent.querySelector('.vgmdb-custom-language-variants-wrapper')) {
+                return;
+            }
+
+            // Create the variant element
+            const altSpan = document.createElement('span');
+            altSpan.textContent = kanjiVal;
+            // Force the element to show up and apply the user-defined color
+            altSpan.style.setProperty('display', 'inline', 'important');
+            altSpan.style.setProperty('color', showLanguageVariantsColor, 'important');
+
+            // Create a wrapper container for all the variants (so it can be easily toggled via CSS)
+            const altContainer = document.createElement('span');
+            altContainer.className = 'vgmdb-custom-language-variants-wrapper vgmdb-type-draft-artists';
+
+            altContainer.appendChild(document.createTextNode(' ('));
+            altContainer.appendChild(altSpan);
+            altContainer.appendChild(document.createTextNode(')'));
+
+            // Insert the whole block right after the display link/node
+            parent.insertBefore(altContainer, displayNode.nextSibling);
+        });
+    }
+
     /*********************************************
      * Setup and initialization
      ********************************************/
@@ -334,5 +394,6 @@
 
     // 3. Process the page HTML to inject the variants
     showLanguageVariantsSetup();
+    showLanguageVariantsDraftArtistsSetup();
 
 })();
