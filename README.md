@@ -156,7 +156,7 @@ A setting to toggle the visibility of language variants will be added to the VGM
 
 <img width="1755" height="560" alt="image" src="https://github.com/user-attachments/assets/1a4a0dae-baf0-4258-8e3b-23759bad5517" />
 
-## [VGMdb draft export as text.user.js](VGMdb%20draft%20export%20as%20text.user.js)
+## [VGMdb draft export as text](VGMdb%20draft%20export%20as%20text.user.js)
 
 Adds a button to export draft content as text on VGMdb.
 
@@ -168,6 +168,20 @@ When this script is enabled, a new button will be added to the draft page that w
 
 A new section will be added to the VGMdb preferences panel allowing to choose the language of the artists/roles, grouping method and optionally append the artist ids.
 
+## [VGMdb draft tweaks](VGMdb%20draft%20tweaks.user.js)
+
+Tweaks for the VGMdb draft page.
+
+### Features
+
+When this script is enabled, the following features will be added to the draft page:
+- Modified entries will be highlighted in yellow, and automatically selected for changes to apply
+- Insert buttons in artist dropdown to quickly open respective artist pages
+- Add buttons to select / deselect all entries of given role type
+
+### Settings
+
+A new section will be added to the VGMdb preferences panel allowing to enable / disable the corresponding features.
 
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
