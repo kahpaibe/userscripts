@@ -5,7 +5,7 @@
 // @require     https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
 // @grant       GM_addStyle
 // @grant       GM_xmlhttpRequest
-// @version     1.0
+// @version     1.1
 // @author      kahpaibe
 // @description Add a mosaic view for album lists on VGMdb.
 // @run-at      document-idle
@@ -32,6 +32,13 @@
     date: true,
     event: true,
   };
+
+  const mosaicExclusions = [
+    { selector: "#newrelease, .newrelease" },
+    { headerText: "Albums Just Added" },
+    { headerText: "Upcoming Albums" },
+    { headerText: "Related Albums" },
+  ];
 
   /** Find the closest ancestor that matches a predicate. */
   const mosaicFindAncestor = (start, predicate, stopAt = document.body) => {
@@ -172,6 +179,44 @@
   /** Normalize whitespace in a label. */
   const mosaicNormalizeText = (value) =>
     (value || "").replace(/\s+/g, " ").trim();
+
+  /** Get all DOM containers that should be excluded from mosaic processing. */
+  const mosaicGetExcludedContainers = () => {
+    const excluded = new Set();
+    for (const exclusion of mosaicExclusions) {
+      if (exclusion.selector) {
+        const elements = document.querySelectorAll(exclusion.selector);
+        for (const el of elements) {
+          excluded.add(el);
+        }
+      }
+      if (exclusion.headerText) {
+        const targetText = exclusion.headerText.toLowerCase();
+        const headers = Array.from(
+          document.querySelectorAll("h1, h2, h3, h4, h5, h6, td.thead, th"),
+        ).filter(
+          (h) => mosaicNormalizeText(h.textContent).toLowerCase() === targetText,
+        );
+        for (const header of headers) {
+          let headerBox = header;
+          while (
+            headerBox.parentElement &&
+            headerBox.parentElement !== document.body &&
+            headerBox.parentElement.tagName !== "TD" &&
+            headerBox.parentElement.tagName !== "TR" &&
+            !headerBox.parentElement.classList.contains("page")
+          ) {
+            headerBox = headerBox.parentElement;
+          }
+          const contentBox = headerBox.nextElementSibling;
+          if (contentBox) {
+            excluded.add(contentBox);
+          }
+        }
+      }
+    }
+    return excluded;
+  };
 
   /** Normalize release-date text to the plain date only. */
   const mosaicNormalizeReleaseDateText = (value) =>
@@ -928,9 +973,21 @@
    ********************************************/
   /** Setup mosaic feature UI on album lists. */
   const mosaicSetupFeatures = (mosaicConfig) => {
+    const excludedContainers = mosaicGetExcludedContainers();
+    const mosaicIsExcluded = (link) => {
+      let current = link.parentElement;
+      while (current && current !== document.body) {
+        if (excludedContainers.has(current)) {
+          return true;
+        }
+        current = current.parentElement;
+      }
+      return false;
+    };
+
     const mosaicAlbumLinks = Array.from(
       document.querySelectorAll(mosaicAlbumLinkSelector),
-    );
+    ).filter((link) => !mosaicIsExcluded(link));
     if (mosaicAlbumLinks.length === 0) {
       return;
     }
