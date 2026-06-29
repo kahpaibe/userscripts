@@ -156,6 +156,18 @@ A setting to toggle the visibility of language variants will be added to the VGM
 
 <img width="1755" height="560" alt="image" src="https://github.com/user-attachments/assets/1a4a0dae-baf0-4258-8e3b-23759bad5517" />
 
+## [VGMdb draft export as text.user.js](VGMdb%20draft%20export%20as%20text.user.js)
+
+Adds a button to export draft content as text on VGMdb.
+
+### Features
+
+When this script is enabled, a new button will be added to the draft page that will allow exporting the draft content as text. The exported text should be suitable for mass add, or be used with the `.ca` command of nstzbot.
+
+### Settings
+
+A new section will be added to the VGMdb preferences panel allowing to choose the language of the artists/roles, grouping method and optionally append the artist ids.
+
 
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
