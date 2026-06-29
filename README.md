@@ -162,11 +162,25 @@ Adds a button to export draft content as text on VGMdb.
 
 ### Features
 
-When this script is enabled, a new button will be added to the draft page that will allow exporting the draft content as text. The exported text should be suitable for mass add, or be used with the `.ca` command of nstzbot.
+When this script is enabled, a new button will be added to the draft page that will allow exporting the draft content as text. The exported text should be suitable for mass add, or be used with the `.ca` command of nstzbot. An example of such an export would be:
+
+```
+作詞, 歌: コツキミヤ
+歌: kaya, GINGA
+作曲, 編曲: Dozest
+作曲: SID;DAN, 浅川ユキムネ
+作詞: mitogi, カヤ, ＧＩＮＧＡ
+編曲: 宮川弾
+イラスト: KEI, 各務
+ブックレット, 装丁: Yukimune Asakawa
+``` 
 
 ### Settings
 
 A new section will be added to the VGMdb preferences panel allowing to choose the language of the artists/roles, grouping method and optionally append the artist ids.
+
+<img width="2632" height="264" alt="image" src="https://github.com/user-attachments/assets/4ee2b6ef-9418-447c-915a-1be44df45802" />
+
 
 ## [VGMdb draft tweaks](VGMdb%20draft%20tweaks.user.js)
 
@@ -182,6 +196,8 @@ When this script is enabled, the following features will be added to the draft p
 ### Settings
 
 A new section will be added to the VGMdb preferences panel allowing to enable / disable the corresponding features.
+
+<img width="2572" height="452" alt="image" src="https://github.com/user-attachments/assets/8276b7af-e84a-4278-b3a7-0b290e609574" />
 
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
