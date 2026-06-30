@@ -199,6 +199,24 @@ A new section will be added to the VGMdb preferences panel allowing to enable / 
 
 <img width="2572" height="452" alt="image" src="https://github.com/user-attachments/assets/8276b7af-e84a-4278-b3a7-0b290e609574" />
 
+## [VGMdb textbox helper menu](VGMdb%20textbox%20helper%20menu.user.js)
+
+Add a helper menu when interacting with textboxes on VGMdb, providing formatting utilities and text insertion widgets.
+
+### Features
+
+When this script is enabled, a new helper menu will be shown when interacting with textboxes on VGMdb.
+The following widgets are provided:
+- **Artist**: On artist-related pages only, allow insert `[artist=<id>][/artist]` tags
+- **Album**: On album-related pages only, allow insert `[album=<id>][/album]` tags
+- **Regex Replace**: Perform regex search and replace on selected text
+- **Common Subst**: Perform common substitutions on selected text, such as replacing full-width characters with half-width ones, or replacing certain punctuation marks with others
+- **Sources**: Insert common source justification template (used for album submissions)
+
+### Settings
+
+A new section will be added to the VGMdb preferences panel allowing to enable / disable the helper menu.
+
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
 Example of how to use the VGMdb Custom Settings library to insert custom buttons in the VGMdb settings component.
