@@ -217,6 +217,9 @@ The following widgets are provided:
 
 A new section will be added to the VGMdb preferences panel allowing to enable / disable the helper menu.
 
+<img width="918" height="700" alt="image" src="https://github.com/user-attachments/assets/b41cef47-d0cb-4ab5-b165-23f9a592105b" />
+
+
 ## [VGMdb Custom Settings minimal example](VGMDB%20Custom%20Settings%20minimal%20example.user.js)
 
 Example of how to use the VGMdb Custom Settings library to insert custom buttons in the VGMdb settings component.
