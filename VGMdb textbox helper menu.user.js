@@ -4,7 +4,7 @@
 // @match       https://vgmdb.net/*
 // @require     https://raw.githubusercontent.com/kahpaibe/userscripts/refs/heads/main/components/VGMdb%20Custom%20Settings.js
 // @grant       GM_addStyle
-// @version     1.1
+// @version     1.2
 // @author      kahpaibe
 // @description Add configurable formatting utilities and autocomplete widgets for textboxes on VGMdb.
 // @run-at      document-idle
@@ -14,79 +14,11 @@
   "use strict";
 
   /*********************************************
-   * Custom settings management
-   ********************************************/
-  if (
-    !window.VGMdbCustomSettings ||
-    typeof window.VGMdbCustomSettings.createManager !== "function"
-  ) {
-    console.error(
-      "[VGMdb textbox helper menu] Missing VGMdbCustomSettings library."
-    );
-  }
-
-  let textboxHelperEnabled = true;
-  let textboxHelperLastTextarea = null;
-
-  const textboxHelperToggleMenuEnabled = (enabled) => {
-    textboxHelperEnabled = enabled;
-    if (!enabled) {
-      // Hide the menu instantly if showing
-      if (textboxHelperMenu) {
-        textboxHelperMenu.style.display = "none";
-      }
-      // Restore margins on the active textarea if any
-      if (textboxHelperActiveTextarea) {
-        const origMargins = textboxHelperActiveTextarea.textboxHelperOriginalMargins;
-        if (origMargins) {
-          textboxHelperActiveTextarea.style.marginTop = origMargins.marginTop;
-        }
-      }
-    } else {
-      // If we have an active or last textarea, show it instantly
-      const targetTextarea = textboxHelperActiveTextarea || textboxHelperLastTextarea;
-      if (targetTextarea) {
-        // Clear active textarea reference so showMenu doesn't early-return
-        textboxHelperActiveTextarea = null;
-        textboxHelperShowMenuForTextarea(targetTextarea);
-      }
-    }
-  };
-
-  const manager = window.VGMdbCustomSettings ? window.VGMdbCustomSettings.createManager({
-    storageKey: "vgmdbTextboxHelper",
-    containerId: "customSettingsContainerTextboxHelper",
-    config: {
-      "(custom) VGMdb textbox helper menu": [
-        {
-          type: "checkbox",
-          id: "enableTextboxHelper",
-          label: "Show textbox helper menu",
-          tooltip: "Toggle the visibility of the textbox helper menu when interacting with textareas.",
-          default: true,
-          onChange: function (value) {
-            textboxHelperToggleMenuEnabled(value);
-          },
-        },
-      ],
-    },
-  }) : null;
-
-  if (manager) {
-    manager.mount();
-    textboxHelperEnabled = manager.getSetting("enableTextboxHelper", true);
-  }
-
-  /*********************************************
    * User variables
    ********************************************/
   const textboxHelperCommonSubstitutions = {
-    // Convert full-width space to standard space
-    "　": " ",
-    // Compress consecutive newlines (3 or more down to exactly 2)
-    "/\\n{3,}/g": "\n\n",
     // Convert full-width punctuation
-    "：": ":",
+    "：": ": ",
     "，": ",",
     "．": ".",
     "！": "!",
@@ -103,6 +35,18 @@
     "＝": "=",
     "／": "/",
     "｜": "|",
+    "・": ", ",
+    "、": ", ",
+    // Other substitutions
+    "&": ", ",
+    "(?!\\s)": " (", // Force space before "("
+    ":(?!\\s)": ": ", // Force space after ":"
+    // Convert full-width space to standard space
+    "　": " ",
+    // Compress consecutive newlines (3 or more down to exactly 2)
+    "/\\n{3,}/g": "\n\n",
+    // Compress consecutive spaces (2 or more down to exactly 1)
+    "/ {2,}/g": " ",
   };
 
   /** Helper to apply common substitutions. */
@@ -152,6 +96,27 @@
         const match = /(\d+)/.exec(input);
         const id = match ? match[1] : "";
         return `[album=${id}]${selectedText}[/album]`;
+      },
+    },
+
+    // 1b. M-series: Prompts for a count and generates M01, M02 ... separated by an empty line
+    "m-series": {
+      id: "m-series",
+      type: "button",
+      label: "M-series",
+      tooltip: "Insert series of Media items (M01, M02, ...)",
+      url_regex: ["/album/new", "/album/", "/db/albums-history\\.php\\?id="],
+      action: (selectedText) => {
+        const input = prompt("Enter number of items in the series:");
+        if (input === null) return null; // Cancelled
+        const count = parseInt(input, 10);
+        if (isNaN(count) || count <= 0) return null;
+        const lines = [];
+        for (let i = 1; i <= count; i++) {
+          const padded = String(i).padStart(2, '0');
+          lines.push(`M${padded}`);
+        }
+        return lines.join("\n\n");
       },
     },
 
@@ -623,6 +588,7 @@
   // Reorder, remove, or duplicate IDs below to configure the toolbar.
   const textboxHelperActiveWidgetIds = [
     "album-tag",
+    "m-series",
     "artist-tag",
     "regex-replacer",
     "common-subst",
@@ -991,7 +957,7 @@
 
     // Show menu on text box click/focus
     document.addEventListener("click", (event) => {
-      const textarea = event.target.closest("textarea.resizable, .resizable-textarea textarea");
+      const textarea = event.target.closest("textarea");
       const isMenuClick = textboxHelperMenu && textboxHelperMenu.contains(event.target);
 
       if (textarea) {
@@ -1003,7 +969,7 @@
 
     // Close menu when focus moves to elements outside the textarea and the menu (e.g. keyboard navigation)
     document.addEventListener("focusin", (event) => {
-      const textarea = event.target.closest("textarea.resizable, .resizable-textarea textarea");
+      const textarea = event.target.closest("textarea");
       const isMenuFocus = textboxHelperMenu && textboxHelperMenu.contains(event.target);
 
       if (textarea) {
@@ -1022,6 +988,70 @@
       }
     });
   };
+
+  /*********************************************
+   * Custom settings management
+   ********************************************/
+  if (
+    !window.VGMdbCustomSettings ||
+    typeof window.VGMdbCustomSettings.createManager !== "function"
+  ) {
+    console.error(
+      "[VGMdb textbox helper menu] Missing VGMdbCustomSettings library."
+    );
+  }
+
+  let textboxHelperEnabled = true;
+  let textboxHelperLastTextarea = null;
+
+  const textboxHelperToggleMenuEnabled = (enabled) => {
+    textboxHelperEnabled = enabled;
+    if (!enabled) {
+      // Hide the menu instantly if showing
+      if (textboxHelperMenu) {
+        textboxHelperMenu.style.display = "none";
+      }
+      // Restore margins on the active textarea if any
+      if (textboxHelperActiveTextarea) {
+        const origMargins = textboxHelperActiveTextarea.textboxHelperOriginalMargins;
+        if (origMargins) {
+          textboxHelperActiveTextarea.style.marginTop = origMargins.marginTop;
+        }
+      }
+    } else {
+      // If we have an active or last textarea, show it instantly
+      const targetTextarea = textboxHelperActiveTextarea || textboxHelperLastTextarea;
+      if (targetTextarea) {
+        // Clear active textarea reference so showMenu doesn't early-return
+        textboxHelperActiveTextarea = null;
+        textboxHelperShowMenuForTextarea(targetTextarea);
+      }
+    }
+  };
+
+  const manager = window.VGMdbCustomSettings ? window.VGMdbCustomSettings.createManager({
+    storageKey: "vgmdbTextboxHelper",
+    containerId: "customSettingsContainerTextboxHelper",
+    config: {
+      "(custom) VGMdb textbox helper menu": [
+        {
+          type: "checkbox",
+          id: "enableTextboxHelper",
+          label: "Show textbox helper menu",
+          tooltip: "Toggle the visibility of the textbox helper menu when interacting with textareas.",
+          default: true,
+          onChange: function (value) {
+            textboxHelperToggleMenuEnabled(value);
+          },
+        },
+      ],
+    },
+  }) : null;
+
+  if (manager) {
+    manager.mount();
+    textboxHelperEnabled = manager.getSetting("enableTextboxHelper", true);
+  }
 
   /*********************************************
    * Call setups
